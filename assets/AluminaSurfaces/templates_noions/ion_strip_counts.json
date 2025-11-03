@@ -1,0 +1,18 @@
+{
+  "AS2": {
+    "removed_car_atoms": 22,
+    "removed_mdf_atoms": 22
+  },
+  "AS5": {
+    "removed_car_atoms": 10,
+    "removed_mdf_atoms": 10
+  },
+  "AS10": {
+    "removed_car_atoms": 10,
+    "removed_mdf_atoms": 10
+  },
+  "AS12": {
+    "removed_car_atoms": 18,
+    "removed_mdf_atoms": 18
+  }
+}

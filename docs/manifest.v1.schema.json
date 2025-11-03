@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://molsaicv3.local/docs/manifest.v1.schema.json",
+  "title": "MolSAIC V3 Manifest v1",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "started_at": {"type": "string", "format": "date-time"},
+    "finished_at": {"type": "string", "format": "date-time"},
+    "inputs": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "templates_dir": {"type":"string"},
+        "parameters_prm": {"type":"string"},
+        "frc_file": {"type":"string"},
+        "packmol_deck": {"type":"string"},
+        "residue_surface": {"type":"string", "minLength":1, "maxLength":4},
+        "residue_water": {"type":"string", "minLength":1, "maxLength":4},
+        "target_c": {"type":"number"}
+      },
+      "required": ["templates_dir","parameters_prm","frc_file","packmol_deck","residue_surface","residue_water","target_c"]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "packmol_seed": {"type":["integer","null"]},
+        "normalize_xy": {"type":"boolean"},
+        "normalize_z_to": {"type":"number"}
+      }
+    },
+    "tools": {
+      "type": "object",
+      "description": "Resolved executable paths by tool name",
+      "additionalProperties": {"type":"string"}
+    },
+    "tool_versions": {
+      "type": "object",
+      "description": "Tool version string by tool name (when available)",
+      "additionalProperties": {"type":"string"}
+    },
+    "tool_profile": {
+      "type":"string",
+      "description":"Selected toolchain profile name, when profiles are configured"
+    },
+    "timings": {
+      "type": "object",
+      "additionalProperties": {"type":"number"}
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": {"type":"string"},
+      "properties": {
+        "lmp_data_file": {"type":"string"},
+        "car_file": {"type":"string"},
+        "mdf_file": {"type":"string"},
+        "packed_structure": {"type":"string"}
+      },
+      "required": ["lmp_data_file","car_file","mdf_file","packed_structure"]
+    },
+    "counts": {
+      "type":"object",
+      "additionalProperties": true,
+      "properties": {
+        "atoms":{"type":"integer"},
+        "surface_atoms":{"type":"integer"},
+        "waters":{"type":"integer"},
+        "bonds":{"type":"integer"}
+      }
+    },
+    "cell": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "a":{"type":"number"},
+        "b":{"type":"number"},
+        "c":{"type":"number"},
+        "alpha":{"type":"number"},
+        "beta":{"type":"number"},
+        "gamma":{"type":"number"}
+      },
+      "required":["c"]
+    },
+    "warnings": {
+      "type":"array",
+      "items":{"type":"string"}
+    },
+    "determinism": {
+      "type":"object",
+      "additionalProperties": true,
+      "properties": {
+        "repeated_runs_equal":{"type":"boolean"},
+        "notes":{"type":"string"}
+      }
+    }
+  },
+  "required": ["started_at","finished_at","inputs","outputs","counts","cell"]
+}

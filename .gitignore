@@ -1,0 +1,232 @@
+# === Core ===
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+desktop.ini
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+*.old
+*.orig
+*.lock
+
+# === System / IDE ===
+.vscode/
+.idea/
+*.iml
+*.sublime-*
+*.code-workspace
+
+# === Environments ===
+.env
+.env.*
+.venv/
+venv/
+ENV/
+node_modules/
+bower_components/
+dist/
+build/
+target/
+out/
+coverage/
+.cache/
+*.egg-info/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.class
+
+# === OS / Package Managers ===
+*.deb
+*.rpm
+*.msi
+*.exe
+*.dll
+*.so
+*.dylib
+*.pkg
+*.lock.json
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+poetry.lock
+Pipfile.lock
+
+# === Containers / Cloud / Virtualization ===
+.docker/
+docker-compose.override.yml
+Dockerfile.*
+*.tar
+*.img
+*.iso
+*.qcow2
+*.vmdk
+*.box
+
+# === Secrets / Keys ===
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.jks
+*.keystore
+secrets.json
+config.local.*
+credentials.json
+auth.json
+
+# === Databases / Cache / Runtime ===
+*.sqlite*
+*.db
+*.mdb
+*.sql
+*.pid
+*.seed
+*.dump
+*.rdb
+*.tgz
+*.gz
+
+# === Testing / Reports ===
+*.coverage
+coverage.xml
+nosetests.xml
+junit.xml
+test-results/
+reports/
+logs/
+*.out
+
+# === Compiled Binaries ===
+*.exe
+*.dll
+*.so
+*.dylib
+*.o
+*.obj
+*.a
+*.lib
+
+# === Editors ===
+*~
+*.kate-swp
+*.swp
+*.tmp
+*.backup
+
+# === Frontend ===
+public/
+.next/
+.nuxt/
+.storybook/
+.sass-cache/
+.cache-loader/
+jspm_packages/
+*.map
+
+# === Python ===
+.mypy_cache/
+.pytest_cache/
+ipynb_checkpoints/
+pip-wheel-metadata/
+__pypackages__/
+
+# === Java / JVM ===
+.gradle/
+.classpath
+.project
+.settings/
+.mvn/
+*.jar
+*.war
+*.ear
+*.class
+
+# === C/C++ ===
+*.obj
+*.o
+*.so
+*.exe
+*.out
+*.app
+*.a
+
+# === Go ===
+bin/
+*.test
+*.exe
+
+# === Rust ===
+target/
+Cargo.lock
+
+# === Julia ===
+Manifest.toml
+
+# === Notebooks / Data ===
+*.ipynb_checkpoints
+*.csv
+*.tsv
+*.h5
+*.hdf5
+*.pkl
+*.joblib
+*.npy
+*.npz
+*.parquet
+
+# === Machine Learning / Results ===
+runs/
+wandb/
+mlruns/
+tensorboard/
+lightning_logs/
+checkpoints/
+artifacts/
+models/
+weights/
+experiments/
+outputs/
+
+# === OS-specific ===
+.Trash-*
+._*
+.Spotlight-V100
+.fseventsd
+
+# === Local config ===
+local_settings.py
+settings_local.py
+config.dev.json
+config.local.yml
+*.local.js
+*.local.ts
+
+# === Backups / Archives ===
+*.zip
+*.tar.gz
+*.rar
+*.7z
+*.bak
+*.backup
+
+# === Misc project dirs ===
+tmp/
+temp/
+sandbox/
+scratch/
+playground/
+drafts/
+
+# === Custom workspace ===
+workspaces/
+notes/
+data/
+docs/_build/
+

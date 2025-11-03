@@ -1,7 +1,0 @@
-!BIOSYM archive 3
-PBC=OFF
-MolSAIC Ion Template CAR File
-!DATE Wed Oct 22 00:00:00 2025
-CL1       0.000000000    0.000000000    0.000000000 XXXX 1      cl-     Cl -1.000
-end
-end

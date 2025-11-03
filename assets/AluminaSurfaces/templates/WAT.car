@@ -1,9 +1,0 @@
-!BIOSYM archive 3
-PBC=OFF
-Materials Studio Generated CAR File
-!DATE Fri Jun 06 09:02:18 2025
-H1       2.568056419    2.265759415    2.682995600 XXXX 1      H*      H   0.410
-O1       2.035273496    1.457563153    2.432399121 XXXX 1      O*      O  -0.820
-H2       1.147658473    1.837921841    2.233319209 XXXX 1      H*      H   0.410
-end
-end

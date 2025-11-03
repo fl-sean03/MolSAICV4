@@ -1,39 +1,37 @@
-# MolSAIC V3 Quickstart — AS2 Hydration Pilot
+# MolSAIC V4 Quickstart — AS2 Hydration
 
 Purpose
-- Fast path to run the alumina AS2 hydration workspace end-to-end and verify outputs.
-- Pattern is code-first: a plain Python script [run.py](MOLSAICV3/workspaces/alumina_AS2_hydration_v1/run.py) orchestrates small library functions and thin wrappers over external tools.
+- Fast path to run the alumina AS2 hydration workspace end‑to‑end and verify outputs.
+- Pattern is code‑first: a plain Python script [run.py](workspaces/alumina_AS2_hydration_v1/run.py:1) orchestrates small library functions and thin wrappers over external tools.
 
 Core entry points
-- [msi2namd.run()](MOLSAICV3/molsaicv3/usm/external/msi2namd.py:96) → AS2 and WAT PDB/PSF
-- [packmol.run()](MOLSAICV3/molsaicv3/usm/external/packmol.py:46) → hydrated PDB
-- [pm2mdfcar.build()](MOLSAICV3/molsaicv3/usm/ops/pm2mdfcar.py:392) → CAR and MDF with c override
-- [msi2lmp.run()](MOLSAICV3/molsaicv3/usm/external/msi2lmp.py:68) → LAMMPS .data
+- [msi2namd.run()](src/external/msi2namd.py:96) → AS2 and WAT PDB/PSF
+- [packmol.run()](src/external/packmol.py:46) → hydrated PDB
+- [pm2mdfcar.build()](src/pm2mdfcar/__init__.py:392) → CAR and MDF with c override
+- [msi2lmp.run()](src/external/msi2lmp.py:68) → LAMMPS .data
 
 1) Prerequisites
-- Python 3.x
+- Python 3.9+
 - External executables installed and on PATH or provided as absolute paths in config:
   - msi2namd
   - packmol
   - msi2lmp
 - OS: Linux or compatible environment for the executables above
 
-2) Make molsaicv3 importable
-- Option A — Repo-local PYTHONPATH (recommended for quick runs)
-  - From the repository root:
-    - export PYTHONPATH="$PWD/MOLSAICV3:$PYTHONPATH"
-- Option B — Editable install (for contributors)
-  - If packaging is configured, run: pip install -e .
-  - Otherwise prefer Option A; see [docs/WORKFLOWS.md](docs/WORKFLOWS.md:1) for details
+2) Install and import
+- Editable install (recommended):
+  - From repository root:
+    - pip install -e .
+- After install, scripts import usm.*, external.*, and pm2mdfcar.* directly (no PYTHONPATH hacks).
 
 3) Configure the workspace
-- Configuration file: [config.json](MOLSAICV3/workspaces/alumina_AS2_hydration_v1/config.json)
+- Configuration file: [config.json](workspaces/alumina_AS2_hydration_v1/config.json:1)
 - Keys (defaults shown in the file):
   - outputs_dir: "./outputs"
     - Workspace writes artifacts under this directory; subfolders: converted/, simulation/
   - templates_dir: path to AS2/WAT template CAR/MDF directory
   - packmol_deck: path to the Packmol deck (.inp)
-  - parameters_prm: CHARMM-style .prm used by msi2namd
+  - parameters_prm: CHARMM‑style .prm used by msi2namd
   - frc_file: .frc used by msi2lmp
   - residue_surface: "AS2" (1–4 chars enforced)
   - residue_water: "WAT" (1–4 chars enforced)
@@ -42,7 +40,7 @@ Core entry points
     - Each may be a program name on PATH or an absolute/relative file path
   - executables_profiles: optional profiles map (e.g., "local", "container") each with msi2namd/packmol/msi2lmp paths
   - selected_profile: pick a profile from executables_profiles; explicit "executables" keys override profile values
-  - timeouts_s: per-tool timeouts in seconds
+  - timeouts_s: per‑tool timeouts in seconds
   - packmol_seed: optional integer RNG seed for Packmol determinism
   - warnings_policy: { "escalate_missing_structures": false } to fail when deck references missing structures
   - validate_manifest: set true to validate outputs/summary.json against [manifest.v1.schema.json](docs/manifest.v1.schema.json:1)
@@ -59,13 +57,13 @@ Core entry points
 
 5) Run the workspace
 - From the workspace directory:
-  - cd MOLSAICV3/workspaces/alumina_AS2_hydration_v1
+  - cd workspaces/alumina_AS2_hydration_v1
   - python run.py --config ./config.json
 - Notes on working directories and outputs
-  - Step 1 and 2 ([msi2namd.run()](MOLSAICV3/molsaicv3/usm/external/msi2namd.py:96)) write AS2.* and WAT.* next to outputs_dir
-  - Step 3 ([packmol.run()](MOLSAICV3/molsaicv3/usm/external/packmol.py:46)) runs with cwd=outputs_dir so a deck that uses structure AS2.pdb and structure WAT.pdb resolves correctly
-  - Step 4 ([pm2mdfcar.build()](MOLSAICV3/molsaicv3/usm/ops/pm2mdfcar.py:392)) writes converted/AS2_hydrated.{car,mdf}
-  - Step 5 ([msi2lmp.run()](MOLSAICV3/molsaicv3/usm/external/msi2lmp.py:68)) writes simulation/AS2_hydration.data
+  - Step 1 and 2 ([msi2namd.run()](src/external/msi2namd.py:96)) write AS2.* and WAT.* next to outputs_dir
+  - Step 3 ([packmol.run()](src/external/packmol.py:46)) runs with cwd=outputs_dir so a deck that uses structure AS2.pdb and structure WAT.pdb resolves correctly
+  - Step 4 ([pm2mdfcar.build()](src/pm2mdfcar/__init__.py:392)) writes converted/AS2_hydrated.{car,mdf}
+  - Step 5 ([msi2lmp.run()](src/external/msi2lmp.py:68)) writes simulation/AS2_hydration.data
 
 6) Inspect expected outputs
 - Under outputs/:
@@ -77,10 +75,10 @@ Core entry points
   - simulation/AS2_hydration.data
   - summary.json (run manifest)
 - Mapping to steps:
-  - msi2namd → AS2.* and WAT.* via [msi2namd.run()](MOLSAICV3/molsaicv3/usm/external/msi2namd.py:96)
-  - packmol → hydrated PDB via [packmol.run()](MOLSAICV3/molsaicv3/usm/external/packmol.py:46)
-  - pm2mdfcar → CAR/MDF via [pm2mdfcar.build()](MOLSAICV3/molsaicv3/usm/ops/pm2mdfcar.py:392)
-  - msi2lmp → .data via [msi2lmp.run()](MOLSAICV3/molsaicv3/usm/external/msi2lmp.py:68)
+  - msi2namd → AS2.* and WAT.* via [msi2namd.run()](src/external/msi2namd.py:96)
+  - packmol → hydrated PDB via [packmol.run()](src/external/packmol.py:46)
+  - pm2mdfcar → CAR/MDF via [pm2mdfcar.build()](src/pm2mdfcar/__init__.py:392)
+  - msi2lmp → .data via [msi2lmp.run()](src/external/msi2lmp.py:68)
 
 7) Interpret summary.json
 - Location: outputs/summary.json
@@ -89,25 +87,27 @@ Core entry points
   - params: run parameters (packmol_seed, normalize_xy, normalize_z_to)
   - tools: resolved executable paths; tool_profile when profiles used
   - tool_versions: version strings for each external tool (best effort)
-  - timings: per-step durations in seconds
+  - timings: per‑step durations in seconds
   - outputs: absolute paths to artifacts listed above
-  - counts: totals from [pm2mdfcar.build()](MOLSAICV3/molsaicv3/usm/ops/pm2mdfcar.py:392) including atoms, surface_atoms, waters, bonds
+  - counts: totals from [pm2mdfcar.build()](src/pm2mdfcar/__init__.py:392) including atoms, surface_atoms, waters, bonds
   - cell: numeric a, b, c, alpha, beta, gamma with c set to target_c
   - warnings: aggregated from composition plus Packmol deck structure warnings
 - Quick checks:
-  - outputs.lmp_data_file exists and non-zero
+  - outputs.lmp_data_file exists and non‑zero
   - cell.c equals config target_c
   - counts.atoms equals counts.surface_atoms + 3*counts.waters
 
 8) Troubleshooting
-- ModuleNotFoundError: No module named molsaicv3
-  - Ensure Option A PYTHONPATH is set or follow the editable install notes in [MOLSAICV3/DevDoc.md](MOLSAICV3/DevDoc.md:62)
+- ModuleNotFoundError: No module named usm/external/pm2mdfcar
+  - Ensure editable install from repo root:
+    - pip install -e .
+  - See developer notes: [DevDoc.md](DevDoc.md:1)
 - Executable not found errors
   - Provide absolute paths in config.json under "executables"
   - Ensure executable bit is set and the file is compatible with your OS
 - Packmol created no output or deck warnings
   - Check outputs/ for hydrated PDB; if missing, inspect summary.json warnings and ensure deck structure paths match cwd=outputs
 - Empty or missing artifacts
-  - The workspace validates outputs are non-empty at each step; failures will appear on stderr and in logs
+  - The workspace validates outputs are non‑empty at each step; failures will appear on stderr and in logs
 - Timeouts
   - Increase timeouts_s in config.json for long runs or slow machines

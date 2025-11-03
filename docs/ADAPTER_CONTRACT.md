@@ -1,19 +1,19 @@
 # External Tool Adapter Contract (v1)
 
 Purpose
-- Define a unified, deterministic result envelope for all external tool wrappers in MolSAIC V3.
+- Define a unified, deterministic result envelope for all external tool wrappers in MolSAIC V4.
 - Centralize PATH augmentation and tool version capture helpers.
 - Ensure workspace manifests (summary.json) are stable and machine-consumable.
 
 References
-- Contract and helpers: [adapter.py](molsaicv3/usm/external/adapter.py:1)
-  - Dataclass: [ExternalToolResult()](molsaicv3/usm/external/adapter.py:48)
-  - PATH helper: [augment_env_with_exe_dir()](molsaicv3/usm/external/adapter.py:33)
-  - Version helper: [get_tool_version()](molsaicv3/usm/external/adapter.py:112)
+- Contract and helpers: [adapter.py](src/external/adapter.py:1)
+  - Dataclass: [ExternalToolResult()](src/external/adapter.py:50)
+  - PATH helper: [augment_env_with_exe_dir()](src/external/adapter.py:34)
+  - Version helper: [get_tool_version()](src/external/adapter.py:113)
 - Wrappers conforming to this contract:
-  - [packmol.run()](molsaicv3/usm/external/packmol.py:46)
-  - [msi2namd.run()](molsaicv3/usm/external/msi2namd.py:96)
-  - [msi2lmp.run()](molsaicv3/usm/external/msi2lmp.py:68)
+  - [packmol.run()](src/external/packmol.py:46)
+  - [msi2namd.run()](src/external/msi2namd.py:96)
+  - [msi2lmp.run()](src/external/msi2lmp.py:68)
 
 Envelope (ExternalToolResult.to_dict)
 - tool: program name, e.g., "packmol"
@@ -28,13 +28,13 @@ Envelope (ExternalToolResult.to_dict)
 - seed: RNG seed used (when applicable, omitted otherwise)
 
 Conventions
-- PATH safety: wrappers prepend the executable’s directory to PATH via [augment_env_with_exe_dir()](molsaicv3/usm/external/adapter.py:33) to aid dynamic linker resolution.
+- PATH safety: wrappers prepend the executable’s directory to PATH via [augment_env_with_exe_dir()](src/external/adapter.py:34) to aid dynamic linker resolution.
 - Timeouts: all wrappers take a timeout_s and enforce it with subprocess.run(..., timeout=...).
 - Deterministic CWD: wrappers run in a deterministic working directory (e.g., parent of output_prefix or staged inputs).
 - Output validation: wrappers check expected outputs are created and non-empty, raising on failures.
 
 Version capture
-- Wrappers call [get_tool_version()](molsaicv3/usm/external/adapter.py:112) and record tool_version in the result envelope.
+- Wrappers call [get_tool_version()](src/external/adapter.py:113) and record tool_version in the result envelope.
 - Strategy tries common flags (--version, -version, -v, -h) and banner parsing. Never raises; returns "unknown" when not found.
 
 Back-compat aliases
@@ -48,7 +48,7 @@ Error handling (common)
 - RuntimeError when the process exits non-zero or expected outputs are not produced.
 
 Wrappers overview
-- [packmol.run()](molsaicv3/usm/external/packmol.py:46)
+- [packmol.run()](src/external/packmol.py:46)
   - Feeds the deck via a seekable stdin file handle (no shell redirection).
   - Supports seed injection ("seed N") for determinism.
   - Aggregates deck validation warnings (e.g., missing structure files) and optionally escalates to error.
@@ -56,12 +56,12 @@ Wrappers overview
     - outputs.packed_structure: absolute path to hydrated PDB
     - warnings: list of deck validation warnings
     - seed: integer seed when provided
-- [msi2namd.run()](molsaicv3/usm/external/msi2namd.py:96)
+- [msi2namd.run()](src/external/msi2namd.py:96)
   - Stages CAR/MDF into the working dir (parent of output_prefix).
   - Calls external msi2namd with classII params; validates .pdb/.psf outputs.
   - Returns:
     - outputs.pdb_file, outputs.psf_file
-- [msi2lmp.run()](molsaicv3/usm/external/msi2lmp.py:68)
+- [msi2lmp.run()](src/external/msi2lmp.py:68)
   - Runs in the base CAR/MDF directory; produces .data and moves to output_prefix.data when provided.
   - Optional header normalization (parity with legacy):
     - Normalize xlo/xhi and ylo/yhi to [0, a]/[0, b] when requested.
@@ -86,9 +86,9 @@ Result example (truncated)
 }
 
 Adding a new adapter
-- Implement a thin wrapper module with run(...)->dict, returning [ExternalToolResult()](molsaicv3/usm/external/adapter.py:48).to_dict().
-- Use [augment_env_with_exe_dir()](molsaicv3/usm/external/adapter.py:33) for env, capture stdout/stderr, validate outputs.
-- Include tool_version via [get_tool_version()](molsaicv3/usm/external/adapter.py:112).
+- Implement a thin wrapper module with run(...)->dict, returning [ExternalToolResult()](src/external/adapter.py:50).to_dict().
+- Use [augment_env_with_exe_dir()](src/external/adapter.py:34) for env, capture stdout/stderr, validate outputs.
+- Include tool_version via [get_tool_version()](src/external/adapter.py:113).
 - Keep parameters minimal and typed; raise standard exceptions defined above.
 - Write unit tests that:
   - Monkeypatch subprocess.run to emit minimal valid outputs.

@@ -1,115 +1,110 @@
-# MOLSAIC V3 — minimal workspaces
+# MolSAIC V4 — code‑first library and minimal, deterministic workflows
 
-Goal
-- Keep usage simple: each workspace is just a small run.py you edit and run directly.
-- No required config files, schemas, outputs/ folders, baselines/, or verification steps.
-- Stable import surface only: usm.*, external.*, pm2mdfcar.*.
+MolSAIC V4 focuses on a simple, stable Python library and small, direct scripts you can run and version as you like. No plugin registries or YAML DAGs — just import functions, call thin wrappers for external tools when needed, and write artifacts in a predictable layout.
 
-Quickstart
-1) Install in editable mode
-- From repo root:
+Highlights
+- Minimal ceremony: use a tiny run.py or a notebook; configs are optional.
+- Stable import surface: usm.*, external.*, pm2mdfcar.*.
+- Deterministic behavior: stable table ordering, seeded tools, validated outputs.
+
+Install (editable)
+- From repository root:
   ```
-  python -m pip install -e 24-MOLSAIC-V3
+  python -m pip install -e .
   ```
+- Python 3.9+ (see [pyproject.toml](pyproject.toml))
 
-2) Create a minimal workspace
-- Copy the minimal template and edit it in place:
-  ```
-  cp -r 24-MOLSAIC-V3/workspaces/_template 24-MOLSAIC-V3/workspaces/my_job
-  ```
-- Template script: [workspaces/_template/run.py](24-MOLSAIC-V3/workspaces/_template/run.py:1)
+Stable modules (entry points)
+- USM IO and core:
+  - [src/usm/io/car.py](src/usm/io/car.py)
+  - [src/usm/io/mdf.py](src/usm/io/mdf.py)
+  - [src/usm/io/pdb.py](src/usm/io/pdb.py)
+  - [src/usm/core/model.py](src/usm/core/model.py)
+- USM operations (selection, transforms, merge/compose, renumber, cell helpers):
+  - [src/usm/ops/](src/usm/ops)
+- Hydration composition:
+  - [src/pm2mdfcar/__init__.py](src/pm2mdfcar/__init__.py)
+- External tool adapters and wrappers:
+  - [src/external/adapter.py](src/external/adapter.py)
+  - [src/external/packmol.py](src/external/packmol.py)
+  - [src/external/msi2namd.py](src/external/msi2namd.py)
+  - [src/external/msi2lmp.py](src/external/msi2lmp.py)
 
-3) Run it
-- Directly execute your script (no config required):
-  ```
-  python 24-MOLSAIC-V3/workspaces/my_job/run.py
-  ```
+Quickstart (library-first)
+1) Read/edit/write a CAR file (no config required)
+- Example sketch (Python):
+  - Load a CAR into a USM instance (DataFrame tables)
+  - Edit usm.atoms (e.g., select/filter/transform with pandas/numpy/usm.ops)
+  - Save back to CAR (headers preserved when available) and/or MDF/PDB
+- Files: [src/usm/io/car.py](src/usm/io/car.py), [src/usm/io/mdf.py](src/usm/io/mdf.py), [src/usm/io/pdb.py](src/usm/io/pdb.py), [src/usm/ops/](src/usm/ops)
 
-What to import (stable surface)
-- Core IO and model (table-first structures):
-  - [usm.io.car.load_car()](24-MOLSAIC-V3/src/usm/io/car.py:128), [usm.io.car.save_car()](24-MOLSAIC-V3/src/usm/io/car.py:187)
-  - [usm.io.mdf](24-MOLSAIC-V3/src/usm/io/mdf.py), [usm.io.pdb](24-MOLSAIC-V3/src/usm/io/pdb.py)
-- Optional helpers for MXN-like edits:
-  - [usm.ops.selection.split_threshold()](24-MOLSAIC-V3/src/usm/ops/selection.py:15)
-  - [usm.ops.selection.pair_oh_by_distance()](24-MOLSAIC-V3/src/usm/ops/selection.py:34)
-  - [usm.ops.selection.count_by_side()](24-MOLSAIC-V3/src/usm/ops/selection.py:71)
-  - [usm.ops.mdf_conn_preserve.key_from_row()](24-MOLSAIC-V3/src/usm/ops/mdf_conn_preserve.py:23), [usm.ops.mdf_conn_preserve.cleanse_connections_raw()](24-MOLSAIC-V3/src/usm/ops/mdf_conn_preserve.py:57)
-- External tools (optional):
-  - [external.adapter.resolve_executable()](24-MOLSAIC-V3/src/external/adapter.py:180)
-  - [external.packmol.run()](24-MOLSAIC-V3/src/external/packmol.py:46)
-  - [external.msi2namd.run()](24-MOLSAIC-V3/src/external/msi2namd.py:96)
-  - [external.msi2lmp.run()](24-MOLSAIC-V3/src/external/msi2lmp.py:68)
-- Hydration composition (optional):
-  - [pm2mdfcar.build()](24-MOLSAIC-V3/src/pm2mdfcar/__init__.py:392)
+2) Use external wrappers when needed
+- Thin, deterministic wrappers around third‑party executables:
+  - Packmol → hydrated PDB
+  - msi2namd → PDB/PSF
+  - msi2lmp → LAMMPS .data
+- Files: [src/external/packmol.py](src/external/packmol.py), [src/external/msi2namd.py](src/external/msi2namd.py), [src/external/msi2lmp.py](src/external/msi2lmp.py), [src/external/adapter.py](src/external/adapter.py)
+- Notes:
+  - PATH is augmented with the executable’s directory for linker stability.
+  - Wrappers enforce timeouts and validate that outputs are created and non‑empty.
+  - A best‑effort tool_version is captured to aid reproducibility.
 
-Minimal examples (sketches)
-- Edit a CAR next to your run.py:
-  - Load with [usm.io.car.load_car()](24-MOLSAIC-V3/src/usm/io/car.py:128)
-  - Modify the pandas table (usm.atoms) as you like
-  - Save with [usm.io.car.save_car()](24-MOLSAIC-V3/src/usm/io/car.py:187) to a file in the same folder
-- Hydration flow (if you want it):
-  - Locate binaries with [external.adapter.resolve_executable()](24-MOLSAIC-V3/src/external/adapter.py:180) or hardcode paths
-  - Convert templates via [external.msi2namd.run()](24-MOLSAIC-V3/src/external/msi2namd.py:96)
-  - Pack with [external.packmol.run()](24-MOLSAIC-V3/src/external/packmol.py:46)
-  - Compose final CAR/MDF with [pm2mdfcar.build()](24-MOLSAIC-V3/src/pm2mdfcar/__init__.py:392)
-  - (Optional) Emit LAMMPS .data with [external.msi2lmp.run()](24-MOLSAIC-V3/src/external/msi2lmp.py:68)
+3) Compose hydrated systems (optional)
+- Convert templates to PDB/PSF (msi2namd), pack waters/ions (Packmol), compose CAR/MDF (pm2mdfcar), then emit a LAMMPS .data (msi2lmp).
+- Files: [src/pm2mdfcar/__init__.py](src/pm2mdfcar/__init__.py), [src/external/packmol.py](src/external/packmol.py), [src/external/msi2namd.py](src/external/msi2namd.py), [src/external/msi2lmp.py](src/external/msi2lmp.py)
 
-Directory layout (lean)
-- 24-MOLSAIC-V3/src/
-  - external/     (external tool wrappers + adapter)
-  - pm2mdfcar/    (hydration composition op)
-  - usm/          (USM core: io + ops)
-- 24-MOLSAIC-V3/workspaces/
-  - _template/    (minimal run.py you can copy)
-  - your jobs here (any folder name you prefer)
-- 24-MOLSAIC-V3/docs/
-  - Minimal philosophy, usage notes: [docs/EXTENSIBILITY.md](24-MOLSAIC-V3/docs/EXTENSIBILITY.md:1)
+USM design and data model (deeper docs)
+- Overview and schema: [src/usm/docs/DESIGN.md](src/usm/docs/DESIGN.md), [src/usm/docs/DATA_MODEL.md](src/usm/docs/DATA_MODEL.md)
+- Workflows and examples: [src/usm/docs/WORKFLOWS.md](src/usm/docs/WORKFLOWS.md), [src/usm/docs/EXAMPLES.md](src/usm/docs/EXAMPLES.md)
+- Limits and performance: [src/usm/docs/LIMITS.md](src/usm/docs/LIMITS.md), [src/usm/docs/PERFORMANCE.md](src/usm/docs/PERFORMANCE.md)
 
-Conventions (by design)
-- No required config.json. If you want one, parse it in your run.py.
-- No required outputs/ baselines/ logs/ summary.json. Write files next to your script or wherever you prefer.
-- No workspace naming rules. Use any folder names under workspaces/.
-- Only import from usm.*, external.*, pm2mdfcar.*. Avoid sys.path hacks.
+Ions‑in‑water workflows (Packmol)
+- Approach: ions are placed in the aqueous region (not embedded in slabs), matching per‑surface legacy totals while enabling mobility.
+- Guide: [docs/ions-in-water-workflows.md](docs/ions-in-water-workflows.md)
+- When per‑surface workspaces are present, they are typically:
+  - workspaces/alumina_AS2_ions_v1, workspaces/alumina_AS5_ions_v1, workspaces/alumina_AS10_ions_v1, workspaces/alumina_AS12_ions_v1
+- Expected outputs per run (under workspace outputs/):
+  - hydrated PDB (Packmol), converted CAR/MDF (pm2mdfcar), LAMMPS .data (msi2lmp), summary.json, ion z‑histograms
+  - Manifest schema (for validation when used): [docs/manifest.v1.schema.json](docs/manifest.v1.schema.json)
 
-Notes on existing folders
-- Some existing workspaces still use configs and outputs folders for historical reasons; they continue to run unchanged.
-- For new workspaces, prefer the minimal template: [workspaces/_template/run.py](24-MOLSAIC-V3/workspaces/_template/run.py:1)
+Determinism, manifests, and tests
+- Determinism
+  - Stable table ordering and renumbering
+  - Seeded packing (Packmol) when a seed is provided
+  - Consistent working directories and PATH behavior in wrappers
+- Manifest schema
+  - Optional summary.json for runs that choose to emit a manifest
+  - Schema file: [docs/manifest.v1.schema.json](docs/manifest.v1.schema.json)
+- Tests
+  - Integration tests (hydration/ions variants):
+    - [tests/integration/test_hydration_workspaces.py](tests/integration/test_hydration_workspaces.py)
+    - [tests/integration/test_ions_workspaces.py](tests/integration/test_ions_workspaces.py)
+
+Repository layout (current)
+- Library: [src/](src)
+  - USM core/IO/ops: [src/usm/](src/usm)
+  - External wrappers: [src/external/](src/external)
+  - Hydration compose op: [src/pm2mdfcar/](src/pm2mdfcar)
+- Docs: [docs/](docs)
+- Utility scripts: [scripts/](scripts)
+- Tests: [tests/](tests)
+
+Conventions
+- No required config files — parse your own if desired.
+- No required outputs/ or baselines/ structure — write artifacts where it makes sense for your job (workspaces commonly use an outputs/ subfolder).
+- Keep imports within the stable surface usm.*, external.*, pm2mdfcar.* (avoid ad‑hoc sys.path edits).
 
 Troubleshooting
-- ImportError for usm/external/pm2mdfcar: make sure you’ve run editable install
-  ```
-  python -m pip install -e 24-MOLSAIC-V3
-  ```
-- External tools not found: pass absolute paths to [external.adapter.resolve_executable()](24-MOLSAIC-V3/src/external/adapter.py:180) or hardcode the full path in your run.py.
+- ModuleNotFoundError: usm/external/pm2mdfcar
+  - Ensure editable install from repo root:
+    ```
+    python -m pip install -e .
+    ```
+- External executables not found (packmol, msi2namd, msi2lmp)
+  - Provide absolute paths in your script/config, or make sure they are on PATH.
+  - Wrapper behavior and helpers: [src/external/adapter.py](src/external/adapter.py)
+- Parquet not installed (optional)
+  - USM bundle I/O prefers Parquet but falls back to CSV automatically; install pyarrow for better performance.
 
-
-## Alumina ions-in-water workflows (Packmol)
-
-These new workspaces build alumina surfaces with ions interspersed in the aqueous region using Packmol, instead of embedding ions in the slab templates. Ion totals per surface match the legacy templates to preserve stoichiometry while enabling mobility in solution.
-
-Documentation:
-- See the detailed workflow guide: [docs/ions-in-water-workflows.md](docs/ions-in-water-workflows.md:1)
-
-Workspaces:
-- AS2: [workspaces/alumina_AS2_ions_v1/run.py](workspaces/alumina_AS2_ions_v1/run.py:1)
-- AS5: [workspaces/alumina_AS5_ions_v1/run.py](workspaces/alumina_AS5_ions_v1/run.py:1)
-- AS10: [workspaces/alumina_AS10_ions_v1/run.py](workspaces/alumina_AS10_ions_v1/run.py:1)
-- AS12: [workspaces/alumina_AS12_ions_v1/run.py](workspaces/alumina_AS12_ions_v1/run.py:1)
-
-Quickstart (from repo root):
-- AS2:  python3 workspaces/alumina_AS2_ions_v1/run.py --config config.json
-- AS5:  python3 workspaces/alumina_AS5_ions_v1/run.py --config config.json
-- AS10: python3 workspaces/alumina_AS10_ions_v1/run.py --config config.json
-- AS12: python3 workspaces/alumina_AS12_ions_v1/run.py --config config.json
-
-Outputs per run:
-- Packed PDB: outputs/hydrated_ASX_ions.pdb
-- Composed CAR/MDF: outputs/converted/ASX_hydrated.{car,mdf}
-- LAMMPS data: outputs/simulation/ASX_ions_hydration.data
-- Manifest: outputs/summary.json (conforms to [docs/manifest.v1.schema.json](docs/manifest.v1.schema.json:1))
-- Ion z-distributions: outputs/ion_z_histogram.{json,csv}
-
-Notes:
-- Ion counts default to the legacy totals embedded in the original surface templates; override via config.ions.counts_override when needed.
-- Deterministic Packmol is enabled via a seed in config (see summary “params.packmol_seed”).
-- When an ion count is zero, the generated Packmol deck omits that ion’s structure block to avoid STOP 171.
+Notes
+- This README reflects MolSAIC V4. Older references and paths have been removed in favor of the simplified, code‑first model described here.

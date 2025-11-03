@@ -1,14 +1,14 @@
-# MolSAIC V3 Workflows — Code‑First Pattern and Workspace Contract
+# MolSAIC V4 Workflows — Code‑First Pattern and Workspace Contract
 
 Goal
 - Explain the V3 workflow pattern and the workspace contract using the alumina AS2 hydration pilot as a concrete example.
 - Show deterministic conventions for CWD and PATH handling, step mapping, and how to customize inputs and extend to similar systems.
 
 Primary references
-- Workspace entry: [run.py](MOLSAICV3/workspaces/alumina_AS2_hydration_v1/run.py)
-- Config defaults: [config.json](MOLSAICV3/workspaces/alumina_AS2_hydration_v1/config.json)
-- External wrappers: [msi2namd.run()](MOLSAICV3/molsaicv3/usm/external/msi2namd.py:96), [packmol.run()](MOLSAICV3/molsaicv3/usm/external/packmol.py:46), [msi2lmp.run()](MOLSAICV3/molsaicv3/usm/external/msi2lmp.py:68)
-- Composition op: [pm2mdfcar.build()](MOLSAICV3/molsaicv3/usm/ops/pm2mdfcar.py:392)
+- Workspace entry: [run.py](workspaces/alumina_AS2_hydration_v1/run.py:1)
+- Config defaults: [config.json](workspaces/alumina_AS2_hydration_v1/config.json:1)
+- External wrappers: [msi2namd.run()](src/external/msi2namd.py:96), [packmol.run()](src/external/packmol.py:46), [msi2lmp.run()](src/external/msi2lmp.py:68)
+- Composition op: [pm2mdfcar.build()](src/pm2mdfcar/__init__.py:392)
 
 1) V3 Pattern
 - Code‑first: workspaces are plain Python scripts that import a small, deterministic library surface and call external executables via thin wrappers.
@@ -17,7 +17,7 @@ Primary references
 
 Workspace contract
 - Layout inside each workspace directory:
-  - run.py: the orchestrator script, e.g., [run.py](MOLSAICV3/workspaces/alumina_AS2_hydration_v1/run.py)
+  - run.py: the orchestrator script, e.g., [run.py](workspaces/alumina_AS2_hydration_v1/run.py:1)
   - config.json: inputs, parameters, executables, timeouts, and outputs_dir
   - outputs/: created on first run, with standardized subfolders
     - outputs/converted: CAR and MDF produced by composition
@@ -29,13 +29,13 @@ Workspace contract
 
 2) Deterministic Conventions and Environment Handling
 - Working directory discipline:
-  - [msi2namd.run()](MOLSAICV3/molsaicv3/usm/external/msi2namd.py:98)
+  - [msi2namd.run()](src/external/msi2namd.py:98)
     - Derives its working directory from the parent of output_prefix.
     - Stages CAR and MDF inputs into that working directory if needed.
-  - [packmol.run()](MOLSAICV3/molsaicv3/usm/external/packmol.py:48)
+  - [packmol.run()](src/external/packmol.py:48)
     - Uses the current working directory as the output directory.
     - The workspace temporarily chdir’s into outputs/ to ensure deck structure paths resolve correctly.
-  - [msi2lmp.run()](MOLSAICV3/molsaicv3/usm/external/msi2lmp.py:70)
+  - [msi2lmp.run()](src/external/msi2lmp.py:70)
     - Derives its working directory from base_name, i.e., the directory containing the CAR and MDF.
 - PATH augmentation:
   - Each wrapper prepends the executable’s directory to PATH to mitigate dynamic linker issues at runtime.
@@ -43,33 +43,33 @@ Workspace contract
   - Wrappers check for missing inputs and fail fast with clear exceptions.
   - Outputs are validated for existence and non‑zero size before returning.
 - Timeouts:
-  - Each wrapper enforces a timeout (configurable via timeouts_s in [config.json](MOLSAICV3/workspaces/alumina_AS2_hydration_v1/config.json)) and raises on expiry.
+  - Each wrapper enforces a timeout (configurable via timeouts_s in [config.json](workspaces/alumina_AS2_hydration_v1/config.json:1)) and raises on expiry.
 
 3) Step Semantics and Mapping
 - Step 1: AS2 PDB and PSF
-  - Call: [msi2namd.run()](MOLSAICV3/molsaicv3/usm/external/msi2namd.py:96)
+  - Call: [msi2namd.run()](src/external/msi2namd.py:96)
   - Inputs: AS2.mdf, AS2.car, parameters.prm, residue tag such as AS2
   - Output: outputs/AS2.pdb and outputs/AS2.psf
   - Determinism: inputs staged into the derived working directory; outputs validated.
 - Step 2: WAT PDB and PSF
-  - Call: [msi2namd.run()](MOLSAICV3/molsaicv3/usm/external/msi2namd.py:96)
+  - Call: [msi2namd.run()](src/external/msi2namd.py:96)
   - Inputs: WAT.mdf, WAT.car, parameters.prm, residue tag such as WAT
   - Output: outputs/WAT.pdb and outputs/WAT.psf
 - Step 3: Hydration packing with Packmol
-  - Call: [packmol.run()](MOLSAICV3/molsaicv3/usm/external/packmol.py:46)
+  - Call: [packmol.run()](src/external/packmol.py:46)
   - Invocation detail: workspace temporarily sets cwd=outputs/ during the call so deck structure lines resolve to outputs/AS2.pdb and outputs/WAT.pdb
   - Output: hydrated PDB file as named in the deck (e.g., hydrated_AS2.pdb)
   - Determinism: set packmol_seed in config to inject "seed N" into the deck; Packmol reads the deck via stdin (seekable file handle)
   - Warnings policy: missing structure files are collected as 'warnings'; set warnings_policy.escalate_missing_structures=true to fail early
 - Step 4: Compose CAR and MDF with numeric PBC c
-  - Call: [pm2mdfcar.build()](MOLSAICV3/molsaicv3/usm/ops/pm2mdfcar.py:392)
+  - Call: [pm2mdfcar.build()](src/pm2mdfcar/__init__.py:392)
   - Behavior:
     - Deterministic output order: AS2 atoms in template order, then waters ordered by residue index, each as O, H, H
     - Bonds: preserves AS2 bonds from the AS2 template and replicates WAT bonds for each water; deduplicates and sorts
     - Cell: copies a, b, and angles from AS2 template, overrides c with target_c
   - Output: outputs/converted/AS2_hydrated.car and .mdf
 - Step 5: LAMMPS .data via msi2lmp
-  - Call: [msi2lmp.run()](MOLSAICV3/molsaicv3/usm/external/msi2lmp.py:68)
+  - Call: [msi2lmp.run()](src/external/msi2lmp.py:68)
   - Behavior:
     - Runs in the directory containing AS2_hydrated.car and .mdf
     - Produces a .data, then moves or renames it to outputs/simulation/AS2_hydration.data
@@ -98,15 +98,15 @@ flowchart LR
 - Residue names:
   - residue_surface and residue_water must be 1–4 characters (validated by run.py prior to calls)
 - target_c:
-  - Numeric cell c value written into CAR and MDF by [pm2mdfcar.build()](MOLSAICV3/molsaicv3/usm/ops/pm2mdfcar.py:392) and used for header normalization by [msi2lmp.run()](MOLSAICV3/molsaicv3/usm/external/msi2lmp.py:70)
+  - Numeric cell c value written into CAR and MDF by [pm2mdfcar.build()](src/pm2mdfcar/__init__.py:392) and used for header normalization by [msi2lmp.run()](src/external/msi2lmp.py:70)
 - Executables and timeouts:
   - executables in config.json can override PATH discovery; timeouts_s adjusts per‑tool timeouts
 - CWD and deck expectations:
-  - Because [packmol.run()](MOLSAICV3/molsaicv3/usm/external/packmol.py:48) writes to cwd, the workspace ensures cwd=outputs during the call. Author your deck with relative structure names to those outputs.
+  - Because [packmol.run()](src/external/packmol.py:48) writes to cwd, the workspace ensures cwd=outputs during the call. Author your deck with relative structure names to those outputs.
 
 5) Extending the Pattern to Similar Systems
 - Start with the workspace template:
-  - [run.py](MOLSAICV3/workspaces/_template/run.py) and [config.json](MOLSAICV3/workspaces/_template/config.json)
+  - [run.py](workspaces/_template/run.py:1) and [config.json](workspaces/_template/config.json:1)
 - Swap templates:
   - Point templates_dir to the appropriate CAR and MDF pair for the target surface; ensure the water template matches your intended water model
 - Adjust the Packmol deck:
@@ -114,16 +114,16 @@ flowchart LR
 - Tune parameters:
   - Update residue labels, target_c, and forcefield file paths
 - Keep the contract:
-  - Maintain outputs/ structure and write a summary.json with inputs, tools, timings, outputs, counts, cell, and warnings as done by [run.py](MOLSAICV3/workspaces/alumina_AS2_hydration_v1/run.py)
+  - Maintain outputs/ structure and write a summary.json with inputs, tools, timings, outputs, counts, cell, and warnings as done by [run.py](workspaces/alumina_AS2_hydration_v1/run.py:1)
 
 6) Wrapper Behaviors and Assumptions Summary
-- [msi2namd.run()](MOLSAICV3/molsaicv3/usm/external/msi2namd.py:96)
+- [msi2namd.run()](src/external/msi2namd.py:96)
   - Stages inputs into working directory; uses output_prefix to determine cwd and output names; augments PATH; validates outputs
-- [packmol.run()](MOLSAICV3/molsaicv3/usm/external/packmol.py:46)
+- [packmol.run()](src/external/packmol.py:46)
   - Consumes the deck via stdin (seekable), writes to cwd; supports seed injection for determinism and warnings escalation; aggregates non‑fatal warnings
-- [pm2mdfcar.build()](MOLSAICV3/molsaicv3/usm/ops/pm2mdfcar.py:392)
+- [pm2mdfcar.build()](src/pm2mdfcar/__init__.py:392)
   - Deterministic atom ordering and bond construction; numeric PBC with c override; returns counts and cell for acceptance checks
-- [msi2lmp.run()](MOLSAICV3/molsaicv3/usm/external/msi2lmp.py:68)
+- [msi2lmp.run()](src/external/msi2lmp.py:68)
   - Runs in CAR/MDF directory; renames or moves .data to the requested output_prefix; optional header‑only z normalization
 
 7) Summary.json as Workflow Contract
@@ -134,6 +134,6 @@ flowchart LR
   - tool_versions: version strings for external tools (best effort capture)
   - timings: durations for each step
   - outputs: absolute paths to artifacts
-  - counts and cell: provided by [pm2mdfcar.build()](MOLSAICV3/molsaicv3/usm/ops/pm2mdfcar.py:392)
+  - counts and cell: provided by [pm2mdfcar.build()](src/pm2mdfcar/__init__.py:392)
   - warnings: union of composition warnings and Packmol deck structure warnings
 - Consumers can rely on summary.json to verify acceptance and to feed downstream automation.

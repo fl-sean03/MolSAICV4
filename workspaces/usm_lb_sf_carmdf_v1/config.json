@@ -1,0 +1,25 @@
+{
+  "outputs_dir": "workspaces/usm_lb_sf_carmdf_v1/outputs",
+  "scenarios": {
+    "A": {
+      "car": "assets/LB_SF_carmdf/FAPbBr2I.car",
+      "mdf": "assets/LB_SF_carmdf/FAPbBr2I.mdf",
+      "replicate": [2, 2, 2]
+    },
+    "B": {
+      "car": "assets/LB_SF_carmdf/R-2-3-FMBA_pi.car",
+      "mdf": "assets/LB_SF_carmdf/R-2-3-FMBA_pi.mdf",
+      "replicate": [2, 1, 1]
+    },
+    "C1": {
+      "car": "assets/LB_SF_carmdf/PbI2_sup.car",
+      "mdf": "assets/LB_SF_carmdf/PbI2_sup.mdf",
+      "replicate": [1, 1, 1]
+    },
+    "C2": {
+      "car": "assets/LB_SF_carmdf/R-2-FMBA_PbI4_new_298K_red_cif_checked.car",
+      "mdf": "assets/LB_SF_carmdf/R-2-FMBA_PbI4_new_298K_red_cif_checked.mdf",
+      "replicate": [1, 1, 1]
+    }
+  }
+}

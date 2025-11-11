@@ -45,6 +45,27 @@ def is_orthorhombic(cell: Dict[str, Any], tol: float = 1e-3) -> bool:
     return abs(a - 90.0) < tol and abs(b - 90.0) < tol and abs(c - 90.0) < tol
 
 
+def has_finite_pbc(cell: Dict[str, Any]) -> bool:
+    """
+    True iff pbc=True and a,b,c,alpha,beta,gamma are all finite and lengths > 0.
+    """
+    if not bool((cell or {}).get("pbc", False)):
+        return False
+    try:
+        a = float(cell.get("a", np.nan))
+        b = float(cell.get("b", np.nan))
+        c = float(cell.get("c", np.nan))
+        alpha = float(cell.get("alpha", np.nan))
+        beta = float(cell.get("beta", np.nan))
+        gamma = float(cell.get("gamma", np.nan))
+    except Exception:
+        return False
+    vals = np.array([a, b, c, alpha, beta, gamma], dtype=float)
+    if not np.all(np.isfinite(vals)):
+        return False
+    return (a > 0.0) and (b > 0.0) and (c > 0.0)
+
+
 def ensure_dir(p: Path) -> None:
     p.mkdir(parents=True, exist_ok=True)
 
@@ -272,14 +293,14 @@ def run_scenario(name: str, cfg: Dict[str, Any], outputs_root: Path) -> Dict[str
     # Element histogram on composed
     summary["counts"]["elements_hist"] = element_histogram(comp["composed"])
 
-    # Transforms (+wrap if orthorhombic)
-    ortho = is_orthorhombic(car_rt["cell"])
-    xform = do_transforms(comp["composed"], out_dir, apply_wrap=ortho)
+    # Transforms (+wrap if finite PBC)
+    finite_pbc = has_finite_pbc(car_rt["cell"])
+    xform = do_transforms(comp["composed"], out_dir, apply_wrap=finite_pbc)
     summary["outputs"]["xform_car"] = xform["out_file"]
 
-    # Replication (only orthorhombic)
-    rep_cfg = cfg.get("replicate", [2, 1, 1]) if ortho else None
-    if ortho:
+    # Replication (general triclinic support for any finite PBC cell)
+    rep_cfg = cfg.get("replicate", [2, 1, 1]) if finite_pbc else None
+    if finite_pbc:
         try:
             na, nb, nc = [int(x) for x in rep_cfg]
             rep = do_replicate(comp["composed"], out_dir, na, nb, nc)
@@ -290,7 +311,7 @@ def run_scenario(name: str, cfg: Dict[str, Any], outputs_root: Path) -> Dict[str
         except Exception as e:
             summary["notes"].append(f"replicate failed: {e}")
     else:
-        summary["notes"].append("non-orthorhombic cell: wrap/replicate skipped")
+        summary["notes"].append("PBC invalid or missing: wrap/replicate skipped")
 
     # Selection demo: pick up to 3 most common elements
     elems_sorted = sorted(summary["counts"]["elements_hist"].items(), key=lambda kv: (-kv[1], kv[0]))

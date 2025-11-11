@@ -225,7 +225,10 @@ playground/
 drafts/
 
 # === Custom workspace ===
+# Keep most workspaces ignored, but allow committing usm_lb_sf_carmdf_v1 runner
 workspaces/
+!workspaces/usm_lb_sf_carmdf_v1/
+!workspaces/usm_lb_sf_carmdf_v1/**
 notes/
 data/
 docs/_build/

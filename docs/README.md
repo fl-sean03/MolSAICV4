@@ -40,6 +40,18 @@ Some workspaces emit a machine-readable `outputs/summary.json`. The schema used 
 
 - Manifest schema: [manifest.v1.schema.json](manifest.v1.schema.json)
 
+## Submodules (USM + UPM)
+
+This repo includes two submodules:
+- **USM** at `src/usm/` (Unified Structure Model: structures + deterministic ops)
+- **UPM** at `src/upm/` (Unified Parameter Model: parameter packages + CLI)
+
+If you clone fresh, initialize submodules:
+- `git submodule update --init --recursive`
+
+UPM is a standalone package and is installed separately from the MolSAIC root:
+- `python -m pip install -e ./src/upm`
+
 ## USM notes (submodule)
 
 USM is the core “Unified Structure Model” library (data model + IO + deterministic ops). In this repo it is included as a git submodule at `src/usm/`.

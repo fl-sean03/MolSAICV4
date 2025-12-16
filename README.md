@@ -67,14 +67,23 @@ Start here:
 ### 4) UPM — Unified Parameter Model (versioned force-field packages)
 UPM is a **standalone** Python library + CLI for managing, validating, and exporting **force-field parameter packages** (starting with Materials Studio / BIOSYM-style `*.frc` used by `msi2lmp`).
 
-- In this repo, UPM lives under `src/upm/` with its own `pyproject.toml`.
-- UPM is currently **installed separately** from the MolSAIC root package.
+- In this repo, UPM is included as a **git submodule** at `src/upm/` with its own `pyproject.toml`.
+- UPM is intentionally **installed separately** from the MolSAIC root package.
 
 See: `src/upm/README.md`
 
 ---
 
 ## Getting started
+
+### Clone (with submodules)
+If you’re cloning fresh, initialize submodules (USM + UPM):
+
+```bash
+git clone git@github.com:fl-sean03/MolSAICV4.git
+cd MolSAICV4
+git submodule update --init --recursive
+```
 
 ### Install MolSAIC (editable)
 From repository root:

@@ -76,6 +76,10 @@ UPM must support (at minimum):
 - Structure normalization (CAR/MDF/CIF/PDB-ish) → one schema (atoms, optional bonds, cell)
 - Deterministic structural ops and bundling
 - **Charges live here** (structure side)
+- **Derive topology requirements** from a structure for downstream parameter selection:
+  - Produce a `requirements.json` (v0.1 schema) from `atoms.atom_type` + optional `bonds` (and derived angles)
+  - This must be deterministic (stable ordering, canonical keys)
+  - This must remain **UPM-independent** (USM outputs plain JSON/dicts; no `import upm`)
 
 ### 2.2 UPM responsibilities
 - Force-field packages (versioned bundles + manifest + raw section preservation)
@@ -84,12 +88,12 @@ UPM must support (at minimum):
 - CLI for import/validate/export/derive-req (UPM can remain standalone)
 
 ### 2.3 MolSAIC responsibilities
-- Orchestration: bridges between USM and UPM
+- Orchestration: call USM to derive `requirements.json`, then call UPM resolver/export
 - External wrappers (msi2lmp, packmol, etc.) with deterministic envelopes
 - Workspaces as the only “workflow engine”
 - Cross-repo integration tests (workspace regression)
 
-**Design rule:** Avoid duplicating UPM’s parameter logic in MolSAIC. MolSAIC should produce `Requirements`, then call UPM’s resolver/export.
+**Design rule:** Avoid duplicating UPM’s parameter logic in MolSAIC. Avoid duplicating USM’s topology-derivation logic in MolSAIC. MolSAIC orchestrates: **USM → Requirements → UPM minimal `.frc` → external tool**.
 
 ---
 
@@ -101,9 +105,10 @@ Add:
   - `run.py`
   - `config.json` (optional; recommended)
   - `outputs/` (created at runtime)
-- `src/molsaiс/bridges/` (or similar; choose one consistent location)
-  - `usm_to_requirements.py` (USM → Requirements JSON)
 - `src/external/msi2lmp.py` wrapper improvements (see section 7)
+
+Notes:
+- MolSAIC no longer owns a USM→Requirements “bridge” module. Requirements derivation is implemented inside USM (see 3.3).
 
 ### 3.2 UPM submodule
 Update:
@@ -112,11 +117,17 @@ Update:
 - add missing-term flags + include-raw export option
 
 ### 3.3 USM submodule
-No mandatory API changes required if it already provides:
+Add:
+- `src/usm/ops/requirements.py` (or similar) providing a deterministic helper, e.g.:
+  - `derive_requirements_v0_1(structure) -> dict`
+  - `write_requirements_json(structure, path) -> None`
+
+No mandatory *core* API changes required if USM already provides:
 - `atoms` table with `atom_type`
 - `bonds` table with `a1`, `a2`
 - deterministic IDs
-If USM lacks bonds (e.g., CAR-only), pipeline must degrade cleanly.
+
+If USM lacks bonds (e.g., CAR-only), requirements derivation must degrade cleanly (emit `bond_types=[]`, `angle_types=[]`).
 
 ---
 
@@ -128,18 +139,22 @@ Each thrust must:
 - include “how to validate” commands
 - assume only prior thrusts are completed
 
-### Thrust A — Add a MolSAIC-side Requirements bridge (USM → Requirements JSON)
-**Goal:** In MolSAIC, implement a deterministic bridge that takes a USM object and writes `requirements.json`.
+### Thrust A — USM: derive Requirements JSON from a USM structure
+**Goal:** In USM, implement a deterministic helper that takes a USM structure and writes `requirements.json` (v0.1 schema).
 
-**Files (MolSAIC):**
-- `src/molsaiс/bridges/usm_to_requirements.py` (new)
-- `workspaces/02_usm_upm_msi2lmp_pipeline/run.py` (uses it)
-- `tests/test_usm_to_requirements.py` (new; if MolSAIC has tests)
+Rationale (why USM, not MolSAIC):
+- Requirements derivation is purely *structure/topology* derived (atom types + bonds + implied angles), so it belongs with USM’s deterministic topology utilities.
+- It must remain UPM-independent to keep USM reusable as a standalone structures library.
+- MolSAIC workspaces should orchestrate by calling USM for `requirements.json`, then UPM for minimal `.frc`.
 
-**Bridge behavior:**
+**Files (USM):**
+- `src/usm/ops/requirements.py` (new)
+- tests in USM (new file under `src/usm`’s test suite if present; otherwise add MolSAIC-level integration coverage)
+
+**USM helper behavior:**
 Inputs:
-- `usm.atoms` with `atom_type`
-- `usm.bonds` with `a1`, `a2` (optional)
+- `structure.atoms` with `atom_type`
+- `structure.bonds` with `a1`, `a2` (optional)
 
 Outputs:
 - Requirements JSON (v0.1 schema)
@@ -157,11 +172,11 @@ Outputs:
 3. Store as unique set, then output as sorted list.
 
 **Validation:**
-- Unit test with a small synthetic USM-like object (3–5 atoms) verifies derived angle tuples.
+- Unit test with a small synthetic USM-like structure (3–5 atoms) verifies derived bond + angle tuples and ordering determinism.
 
-Commands:
+Commands (USM tests):
 ```bash
-pytest -q  # MolSAIC tests
+pytest -q  # in the USM submodule context
 ```
 
 ---
@@ -349,7 +364,7 @@ python workspaces/02_usm_upm_msi2lmp_pipeline/run.py
    - option A: use UPM CLI via subprocess (simple, black-box)
    - option B: call UPM library functions directly (preferred)
 3. Load CAR+MDF via USM into a USM object.
-4. Generate Requirements JSON via MolSAIC bridge (Thrust A).
+4. Generate Requirements JSON via USM requirements helper (Thrust A).
 5. Call UPM resolver/export minimal `.frc`:
    - default: hard error if missing
    - optionally support debug flags via workspace config

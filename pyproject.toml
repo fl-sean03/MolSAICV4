@@ -23,6 +23,9 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["*"]
+# UPM is a standalone package (submodule) and is installed separately via:
+#   python -m pip install -e ./src/upm
+exclude = ["upm", "upm.*"]
 
 [tool.pytest.ini_options]
 addopts = "-q"

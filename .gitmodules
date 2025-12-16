@@ -1,3 +1,6 @@
 [submodule "src/usm"]
 	path = src/usm
 	url = git@github.com:fl-sean03/usm.git
+[submodule "src/upm"]
+	path = src/upm
+	url = git@github.com:fl-sean03/upm.git

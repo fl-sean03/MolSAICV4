@@ -440,9 +440,9 @@ def build(
 
     # WAT template atoms (O1,H1,H2) and bonds in that order
     wat_atoms_tpl, wat_bonds_tpl = _parse_wat_templates(templates_dir_path)
-    
-    # Use vendored legacy pm2mdfcar builder (copied into V3) to reproduce MSI2LMP-compatible MDF/CAR
-    # Build MDF/CAR using the vendored functions defined above.
+
+    # Use a vendored legacy pm2mdfcar builder to reproduce MSI2LMP-compatible MDF/CAR
+    # (kept for output compatibility/stability with existing pipelines).
     pdb_atoms_df, residues_df, pdb_meta = _legacy_parse_pdb(pdb_path)
     templates_legacy = _legacy_load(templates_dir_path)
     _legacy_build_mdf(

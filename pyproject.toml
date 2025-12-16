@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "molsaic"
 version = "0.0.1"
-description = "MolSAIC V3 orchestrator pipelines and adapters."
+description = "MolSAIC V4 deterministic orchestrator pipelines and adapters."
 requires-python = ">=3.9"
 authors = [{ name = "MolSAIC Authors" }]
 dependencies = [
@@ -14,8 +14,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://example.com/molsaic"
-Repository = "https://example.com/molsaic/repo"
+Homepage = "https://github.com/fl-sean03/MolSAICV4"
+Repository = "https://github.com/fl-sean03/MolSAICV4.git"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

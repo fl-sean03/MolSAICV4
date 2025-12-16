@@ -226,16 +226,28 @@ drafts/
 
 # === Custom workspace ===
 # Keep most workspaces ignored, but allow committing a small, curated set of reference workspaces/artifacts
-workspaces/
+workspaces/*
 
-# Allow committing the USM LB_SF CAR/MDF runner (moved under workspaces/other/)
+# Allow committing the MolSAIC v0.1.1 golden demo workspace.
+!workspaces/02_usm_upm_msi2lmp_pipeline/
+!workspaces/02_usm_upm_msi2lmp_pipeline/**
+
+# Allow committing the USM LB_SF CAR/MDF runner (moved under workspaces/other/).
+# Keep it commit-able, but never commit caches/outputs.
 !workspaces/other/
 !workspaces/other/usm_lb_sf_carmdf_v1/
 !workspaces/other/usm_lb_sf_carmdf_v1/**
+workspaces/other/usm_lb_sf_carmdf_v1/outputs/
+workspaces/other/usm_lb_sf_carmdf_v1/outputs/**
+workspaces/other/usm_lb_sf_carmdf_v1/__pycache__/
+workspaces/other/usm_lb_sf_carmdf_v1/**/__pycache__/
 
 # Allow committing a few small reference analysis artifacts (sanitized paths).
-# Note: because workspaces/ is ignored, we must un-ignore parent directories too.
+# NOTE: keep the *directory* hierarchy visible, but ignore everything under mxenes
+# except the explicitly allowlisted small JSON artifacts.
 !workspaces/mxenes/
+!workspaces/mxenes/analysis/
+workspaces/mxenes/**
 !workspaces/mxenes/analysis/
 !workspaces/mxenes/analysis/mxn_counts_v1/
 !workspaces/mxenes/analysis/mxn_counts_v1/counts.json

@@ -28,21 +28,22 @@ MolSAIC’s whole point is **code-first, deterministic pipelines built from smal
 
 A new workspace must run end-to-end, deterministically:
 
-**USM (CAR+MDF) → Requirements → UPM minimal .frc → external/msi2lmp → LAMMPS data + manifest**
+**USM (CAR+MDF) → Requirements → UPM minimal .frc → `src/external/msi2lmp.py` → LAMMPS data + manifest**
 
-Deliverables from the workspace:
-- `outputs/` contains:
-  - `structure.usm_bundle/` (optional but recommended)
-  - `requirements.json`
-  - `ff_minimal.frc`
-  - `msi2lmp/` run folder (stdout/stderr captured)
-  - `lammps.data` (or whatever `msi2lmp` emits)
-  - `run_manifest.json` (hashes + versions + command lines)
+Deliverables from the workspace (written under an `outputs` directory created at runtime):
+- `structure.usm_bundle` (optional but recommended)
+- `requirements.json`
+- `ff_minimal.frc`
+- `msi2lmp_run` run folder (stdout/stderr captured)
+- `lammps.data` (or whatever `msi2lmp` emits)
+- `run_manifest.json` (hashes + versions + command lines)
 
-The workspace must be runnable via:
+A **skeleton workspace** (template) is runnable via:
 ```bash
-python workspaces/02_usm_upm_msi2lmp_pipeline/run.py
+python workspaces/_template/run.py
 ```
+
+Use [`workspaces/_template/run.py`](workspaces/_template/run.py:1) as a starting point for new workspaces (copy it into a new workspace directory, then adapt).
 
 ### 1.2 Secondary outcome: UPM feature bump required for real systems
 
@@ -95,16 +96,26 @@ UPM must support (at minimum):
 
 **Design rule:** Avoid duplicating UPM’s parameter logic in MolSAIC. Avoid duplicating USM’s topology-derivation logic in MolSAIC. MolSAIC orchestrates: **USM → Requirements → UPM minimal `.frc` → external tool**.
 
+### 2.4 Canonicalization rules (v0.1.1)
+
+These rules ensure deterministic, canonical Requirements that align with UPM’s v0.1.1 tables and USM’s requirements helper.
+
+- `bond_types`: represent as `(t1, t2)` where `t1 <= t2`
+- `angle_types`: represent as `(t1, t2, t3)` where `t1 <= t3` (endpoints canonicalized; `t2` is the central atom type)
+- Uniqueness: treat `bond_types` / `angle_types` as sets (duplicates removed)
+- Stable sorting: output lists sorted lexicographically by tuple (deterministic ordering across runs)
+- v0.1.1 dihedral policy: `dihedral_types` is emitted as an empty list by default (dihedrals are out of scope for v0.1.1)
+
 ---
 
 ## 3) Repository layout changes (v0.1.1)
 
 ### 3.1 MolSAIC
-Add:
-- `workspaces/02_usm_upm_msi2lmp_pipeline/`
+Reference / pattern:
+- `workspaces/_template/`
   - `run.py`
-  - `config.json` (optional; recommended)
-  - `outputs/` (created at runtime)
+  - `config.json`
+  - outputs (created at runtime)
 - `src/external/msi2lmp.py` wrapper improvements (see section 7)
 
 Notes:
@@ -185,9 +196,9 @@ pytest -q  # in the USM submodule context
 **Goal:** Add `angles` table as first-class in UPM (CSV/parquet bundles + validation).
 
 **UPM files:**
-- `src/upm/core/tables.py`
-- `src/upm/core/validate.py`
-- `tests/test_tables_validation.py` (update/add)
+- `src/upm/src/upm/core/tables.py`
+- `src/upm/src/upm/core/validate.py`
+- `src/upm/tests/test_tables_validation.py` (update/add)
 
 **Rules:**
 - `angles` key: (`t1`, `t2`, `t3`) with endpoints canonicalized so `t1 <= t3`
@@ -204,9 +215,9 @@ pytest -q  # in UPM submodule context
 **Goal:** Support `#quadratic_angle` in `.frc` import/export.
 
 **UPM files:**
-- `src/upm/codecs/msi_frc.py`
-- `tests/test_msi_frc_codec.py` (update)
-- `tests/test_frc_import_export_roundtrip.py` (update)
+- `src/upm/src/upm/codecs/msi_frc.py`
+- `src/upm/tests/test_msi_frc_codec.py` (update)
+- `src/upm/tests/test_frc_import_export_roundtrip.py` (update)
 
 **Import requirements:**
 - Detect `#quadratic_angle` section
@@ -221,7 +232,7 @@ pytest -q  # in UPM submodule context
 Validation:
 ```bash
 pytest -q
-python workspaces/00_quickcheck_import_export/run.py  # if UPM has workspaces
+python src/upm/workspaces/00_quickcheck_import_export/run.py  # if UPM has workspaces
 ```
 
 ---
@@ -230,8 +241,8 @@ python workspaces/00_quickcheck_import_export/run.py  # if UPM has workspaces
 **Goal:** Extend minimal resolver to include angles.
 
 **UPM files:**
-- `src/upm/core/resolve.py`
-- `tests/test_resolve_minimal_subset.py` (update)
+- `src/upm/src/upm/core/resolve.py`
+- `src/upm/tests/test_resolve_minimal_subset.py` (update)
 
 Rules:
 - Default: missing required angles -> hard error
@@ -286,9 +297,9 @@ Validation:
 **Goal:** UPM remains standalone; demos don’t require USM.
 
 **UPM files:**
-- `src/upm/io/requirements.py` (extend)
+- `src/upm/src/upm/io/requirements.py` (extend)
 - new CLI command `upm derive-req --structure structure.json --out requirements.json`
-- tests: `tests/test_requirements_io.py` (extend)
+- tests: `src/upm/tests/test_requirements_io.py` (extend)
 
 Toy structure schema:
 ```json
@@ -333,16 +344,20 @@ Validation:
 ### Thrust I — MolSAIC: create the integrated golden workspace
 **Goal:** Prove the full architecture and create the regression anchor.
 
-**Workspace path:**
-- `workspaces/02_usm_upm_msi2lmp_pipeline/run.py`
+**Workspace template path:**
+- `workspaces/_template/run.py` (copy this into a new workspace directory and adapt)
 
 Inputs (choose one consistent source):
-- `assets/` in MolSAIC root:
-  - `ethanol.car`, `ethanol.mdf` (or any small example)
-  - `cvff_IFF_metal_oxides_v2.frc`
+
+- Example structure inputs already in this repo (CAR+MDF):
+  - `workspaces/mxenes/analysis/mxn_counts_v1/inputs/MXN.car`
+  - `workspaces/mxenes/analysis/mxn_counts_v1/inputs/MXN.mdf`
+
+- Example force-field input already in this repo:
+  - `src/upm/assets/cvff_IFF_metal_oxides_v2.frc`
 
 Outputs:
-- `outputs/run_manifest.json` includes:
+- `run_manifest.json` written under the workspace outputs directory includes:
   - sha256 of inputs
   - UPM package manifest hash/version
   - requirements.json hash
@@ -351,7 +366,7 @@ Outputs:
 
 Validation:
 ```bash
-python workspaces/02_usm_upm_msi2lmp_pipeline/run.py
+python workspaces/_template/run.py
 ```
 
 ---
@@ -359,7 +374,7 @@ python workspaces/02_usm_upm_msi2lmp_pipeline/run.py
 ## 5) MolSAIC v0.1.1 “golden workspace” spec (exact behavior)
 
 ### 5.1 Workspace steps
-1. Ensure `outputs/` exists (create if missing).
+1. Ensure an `outputs` directory exists (create if missing).
 2. Import `.frc` into a local package cache:
    - option A: use UPM CLI via subprocess (simple, black-box)
    - option B: call UPM library functions directly (preferred)
@@ -369,11 +384,11 @@ python workspaces/02_usm_upm_msi2lmp_pipeline/run.py
    - default: hard error if missing
    - optionally support debug flags via workspace config
 6. Run external `msi2lmp` wrapper:
-   - in a subdir `outputs/msi2lmp_run/`
+   - in a subdir `msi2lmp_run` under `outputs`
 7. Produce `run_manifest.json` with hashes of everything relevant.
 
 ### 5.2 Workspace config (recommended)
-`workspaces/02.../config.json` fields:
+`workspaces/_template/config.json` fields (copy and adapt for your workspace):
 - `package_name`, `package_version`
 - `include_raw_sections` (bool)
 - `allow_missing` (bool) and `force` (bool)
@@ -409,7 +424,7 @@ Every external tool wrapper must return a dict (or dataclass) like:
 {
   "tool": "msi2lmp",
   "cmd": ["msi2lmp", "ethanol", "-c", "2", "-f", "ff_minimal.frc"],
-  "workdir": "outputs/msi2lmp_run",
+  "workdir": "msi2lmp_run",
   "stdout_path": ".../stdout.txt",
   "stderr_path": ".../stderr.txt",
   "outputs": [{"path":".../lammps.data","sha256":"..."}],
@@ -433,7 +448,7 @@ If the tool is missing:
 Add a lightweight test that:
 - imports the example `.frc` (codec sanity)
 - loads a tiny CAR/MDF fixture (or stubs USM if needed)
-- runs requirements bridge and checks determinism
+- runs USM requirements derivation and checks determinism
 
 If `msi2lmp` is not available in CI:
 - the golden workspace test should skip the external run, but still verify:
@@ -451,7 +466,7 @@ Target versions:
 - MolSAIC: v0.1.1 (integration milestone)
 
 Manifest fields should include:
-- `molsaiс_version`
+- `molsaic_version`
 - `usm_version`
 - `upm_version`
 If submodules aren’t packaged with versions, record git commit SHAs instead.
@@ -468,8 +483,8 @@ If submodules aren’t packaged with versions, record git commit SHAs instead.
 - [ ] tests green
 
 ### MolSAIC
-- [ ] USM → Requirements bridge produces deterministic output
-- [ ] `external/msi2lmp` wrapper produces deterministic result envelope
+- [ ] USM-derived Requirements generation produces deterministic output
+- [ ] `src/external/msi2lmp.py` wrapper produces deterministic result envelope
 - [ ] golden workspace produces required outputs + manifest
 
 ---

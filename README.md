@@ -59,10 +59,24 @@ Workspaces are plain directories under `workspaces/` containing:
 
 This model keeps pipelines **transparent** and **easy to fork** without framework lock-in.
 
-Start here:
-- Docs landing page: `docs/README.md`
-- Workspace contract: `docs/WORKFLOWS.md`
-- Quickstart: `docs/QUICKSTART.md`
+Start here (canonical):
+- Quickstart (end-to-end example): `docs/QUICKSTART.md`
+- Workspace contract + determinism conventions: `docs/WORKFLOWS.md`
+- External wrapper contract: `docs/ADAPTER_CONTRACT.md`
+- Acceptance criteria (AS2 hydration): `docs/ACCEPTANCE.md`
+- Alumina “ions in water” workflows: `docs/ions-in-water-workflows.md`
+- Manifest schema: `docs/manifest.v1.schema.json`
+
+Workspaces (entry points)
+- Alumina: `workspaces/alumina/`
+  - AS2 hydration: `workspaces/alumina/alumina_AS2_hydration_v1/`
+  - AS2/AS5/AS10/AS12 ions pipelines: `workspaces/alumina/*_ions_v1/`
+  - Case studies: `workspaces/alumina/cases/`
+- MXenes: `workspaces/mxenes/`
+  - Analysis: `workspaces/mxenes/analysis/`
+  - Fluorination and hydrated systems: `workspaces/mxenes/fluorinated/`, `workspaces/mxenes/hydrated/`
+- NIST: `workspaces/NIST/`
+  - CIF import demo: `workspaces/NIST/nist_calf20_cif_import_v1/`
 
 ### 4) UPM — Unified Parameter Model (versioned force-field packages)
 UPM is a **standalone** Python library + CLI for managing, validating, and exporting **force-field parameter packages** (starting with Materials Studio / BIOSYM-style `*.frc` used by `msi2lmp`).

@@ -23,6 +23,8 @@ Envelope (ExternalToolResult.to_dict)
 - stdout: captured stdout text
 - stderr: captured stderr text
 - outputs: mapping of logical output names to absolute paths
+- status: outcome status string (default "ok"; e.g., "missing_tool")
+- outputs_sha256: mapping of logical output names to sha256 hex digest (may be empty)
 - tool_version: best-effort version string (or absent)
 - warnings: list of warning strings (empty list when none)
 - seed: RNG seed used (when applicable, omitted otherwise)
@@ -32,6 +34,7 @@ Conventions
 - Timeouts: all wrappers take a timeout_s and enforce it with subprocess.run(..., timeout=...).
 - Deterministic CWD: wrappers run in a deterministic working directory (e.g., parent of output_prefix or staged inputs).
 - Output validation: wrappers check expected outputs are created and non-empty, raising on failures.
+- Deterministic result persistence: wrappers write a `result.json` into the working directory on all runs (including `status: missing_tool` when the executable is missing).
 
 Version capture
 - Wrappers call [get_tool_version()](src/external/adapter.py:113) and record tool_version in the result envelope.

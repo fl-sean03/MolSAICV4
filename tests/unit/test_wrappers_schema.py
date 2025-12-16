@@ -66,6 +66,9 @@ def test_msi2namd_wrapper_schema_monkeypatch(tmp_path: Path, monkeypatch):
     # Assert: schema and artifacts
     assert isinstance(res, dict)
     assert res.get("tool") == "msi2namd"
+    assert res.get("status") == "ok"
+    assert "outputs_sha256" in res and isinstance(res["outputs_sha256"], dict)
+
     assert "duration_s" in res and isinstance(res["duration_s"], float)
     assert isinstance(res.get("stdout", ""), str)
     assert isinstance(res.get("stderr", ""), str)
@@ -137,6 +140,20 @@ def test_msi2lmp_wrapper_schema_and_normalization(tmp_path: Path, monkeypatch):
     # Assert
     assert isinstance(res, dict)
     assert res.get("tool") == "msi2lmp"
+    assert res.get("status") == "ok"
+    assert "outputs_sha256" in res and isinstance(res["outputs_sha256"], dict)
+
+    outs = res.get("outputs", {})
+    assert isinstance(outs, dict)
+    assert Path(outs["stdout_file"]).exists()
+    assert Path(outs["stderr_file"]).exists()
+    assert Path(outs["result_json"]).exists()
+
+    # Hashes exist at least for primary artifacts
+    assert "lmp_data_file" in res["outputs_sha256"]
+    assert "stdout_file" in res["outputs_sha256"]
+    assert "stderr_file" in res["outputs_sha256"]
+
     out_file = Path(res["lmp_data_file"])
     assert out_file.exists() and out_file.stat().st_size > 0
 
@@ -148,3 +165,42 @@ def test_msi2lmp_wrapper_schema_and_normalization(tmp_path: Path, monkeypatch):
     # Z shift so min(z)=0
     assert "1 1 1 -0.5 1.0 2.0 0.000000" in text
     assert "2 1 1 0.5 3.0 4.0 1.000000" in text
+
+
+@pytest.mark.unit
+def test_msi2lmp_missing_tool_writes_result_json(tmp_path: Path):
+    # Arrange: base car/mdf and frc
+    base = tmp_path / "hydrated"
+    car = tmp_path / "hydrated.car"
+    mdf = tmp_path / "hydrated.mdf"
+    frc = tmp_path / "cvff.frc"
+    car.write_text("! header\nPBC 1.0 1.0 1.0 90 90 90\n", encoding="utf-8")
+    mdf.write_text("! mdf\n", encoding="utf-8")
+    frc.write_text("* frc\n", encoding="utf-8")
+
+    outdir = tmp_path / "sim"
+    out_prefix = outdir / "sample_hydration"
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    missing_exe = str(tmp_path / "does_not_exist" / "msi2lmp")
+
+    # Act
+    res = msi2lmp.run(
+        base_name=str(base),
+        frc_file=str(frc),
+        exe_path=missing_exe,
+        output_prefix=str(out_prefix),
+        timeout_s=1,
+    )
+
+    # Assert
+    assert isinstance(res, dict)
+    assert res.get("tool") == "msi2lmp"
+    assert res.get("status") == "missing_tool"
+    assert "outputs_sha256" in res and isinstance(res["outputs_sha256"], dict)
+
+    outs = res.get("outputs", {})
+    assert Path(outs["stdout_file"]).exists()
+    assert Path(outs["stderr_file"]).exists()
+    assert Path(outs["result_json"]).exists()
+    assert "Executable not found" in Path(outs["stderr_file"]).read_text(encoding="utf-8")

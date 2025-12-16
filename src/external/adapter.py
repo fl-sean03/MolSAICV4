@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 """
-External tool adapter contract and helpers for MOLSAIC V3.
+External tool adapter contract and helpers for MOLSAIC V4.
 
 Wrappers (msi2namd, packmol, msi2lmp) should populate ExternalToolResult
 and return result.to_dict() with unified keys:
@@ -12,6 +12,8 @@ and return result.to_dict() with unified keys:
   - stdout: str
   - stderr: str
   - outputs: dict[str,str] (named absolute artifact paths)
+  - status: str (e.g., "ok", "missing_tool", "error")
+  - outputs_sha256: dict[str,str] (sha256 hex per outputs key; may be empty)
   - tool_version: Optional[str]
   - warnings: list[str] (optional; empty when none)
   - seed: Optional[int] (for RNG-driven tools like Packmol)
@@ -59,6 +61,8 @@ class ExternalToolResult:
       - stdout: captured stdout text
       - stderr: captured stderr text
       - outputs: mapping of logical output names -> absolute paths
+      - status: outcome status string (default "ok"; e.g., "missing_tool")
+      - outputs_sha256: mapping of logical output names -> sha256 hex digest
       - tool_version: captured version string when available (else "unknown")
       - warnings: optional list of warning strings
       - seed: optional RNG seed used by the tool (when applicable)
@@ -70,6 +74,8 @@ class ExternalToolResult:
     stdout: str
     stderr: str
     outputs: Dict[str, str]
+    status: str = "ok"
+    outputs_sha256: Dict[str, str] = field(default_factory=dict)
     tool_version: Optional[str] = None
     warnings: List[str] = field(default_factory=list)
     seed: Optional[int] = None
@@ -81,8 +87,14 @@ class ExternalToolResult:
             d.pop("tool_version", None)
         if self.seed is None:
             d.pop("seed", None)
+
         # Ensure outputs are strings
-        d["outputs"] = {k: str(v) for k, v in self.outputs.items()}
+        d["outputs"] = {k: str(v) for k, v in (self.outputs or {}).items()}
+
+        # Ensure deterministic types for new stable keys
+        d["status"] = str(self.status) if self.status else "ok"
+        d["outputs_sha256"] = {k: str(v) for k, v in (self.outputs_sha256 or {}).items()}
+
         return d
 
 

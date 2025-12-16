@@ -258,8 +258,8 @@ Rollout Plan and Commit Cadence
 Baseline commit (now)
 - Commit current workspace and runner changes:
   - docs/usm_lb_sf_carmdf_v1.md
-  - workspaces/usm_lb_sf_carmdf_v1/run.py (with exact xyz metrics)
-  - workspaces/usm_lb_sf_carmdf_v1/config.json
+  - workspaces/other/usm_lb_sf_carmdf_v1/run.py (with exact xyz metrics)
+  - workspaces/other/usm_lb_sf_carmdf_v1/config.json
   - outputs generated (if tracked, optional)
 - Commit message (example):
   - chore(workspace): add USM LB_SF_carmdf demo with exact CAR xyz RT metrics; docs scaffold

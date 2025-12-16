@@ -2,11 +2,11 @@
 
 Purpose
 - Define clear verification criteria for correctness and determinism of the alumina AS2 hydration workspace.
-- Criteria are CI‑friendly and based on artifacts and structured fields produced by [run.py](workspaces/alumina_AS2_hydration_v1/run.py:1).
+- Criteria are CI‑friendly and based on artifacts and structured fields produced by [run.py](workspaces/alumina/alumina_AS2_hydration_v1/run.py:1).
 
 Scope
-- Workspace: [run.py](workspaces/alumina_AS2_hydration_v1/run.py:1)
-- Config: [config.json](workspaces/alumina_AS2_hydration_v1/config.json:1)
+- Workspace: [run.py](workspaces/alumina/alumina_AS2_hydration_v1/run.py:1)
+- Config: [config.json](workspaces/alumina/alumina_AS2_hydration_v1/config.json:1)
 - Core library entry points:
   - [msi2namd.run()](src/external/msi2namd.py:96)
   - [packmol.run()](src/external/packmol.py:48)
@@ -28,10 +28,10 @@ Scope
 2) Structural and Numeric Checks
 - Cell c override:
   - cell.c in summary.json must equal config target_c (absolute tolerance 1e‑6).
-  - Source of truth: cell is produced by [pm2mdfcar.build()](MOLSAICV3/molsaicv3/usm/ops/pm2mdfcar.py:392) with c := target_c.
+  - Source of truth: cell is produced by [pm2mdfcar.build()](src/pm2mdfcar/__init__.py:392) with c := target_c.
 - Counts congruency:
   - counts.atoms == counts.surface_atoms + 3 * counts.waters
-  - counts.* fields are provided by [pm2mdfcar.build()](MOLSAICV3/molsaicv3/usm/ops/pm2mdfcar.py:392).
+  - counts.* fields are provided by [pm2mdfcar.build()](src/pm2mdfcar/__init__.py:392).
 - Bonds parity (AS2 + replicated WAT):
   - The final bonds are composed as:
     - All AS2 template bonds preserved
@@ -39,7 +39,7 @@ Scope
   - Therefore, counts.bonds == bonds_as2_template + counts.waters * bonds_wat_template
   - Note: Typical 3‑site water has 2 bonds per molecule; verify against your WAT.mdf if needed.
 - LAMMPS header normalization (header‑only):
-  - If run with normalize_z_to (set by [run.py](workspaces/alumina_AS2_hydration_v1/run.py:1)), the .data header has
+  - If run with normalize_z_to (set by [run.py](workspaces/alumina/alumina_AS2_hydration_v1/run.py:1)), the .data header has
     - zlo zhi = 0.0 and target_c
   - Implemented by [msi2lmp.run()](src/external/msi2lmp.py:70) as a header‑only rewrite.
 
@@ -49,7 +49,7 @@ Scope
   - summary.json structured fields (inputs, tools, counts, cell, outputs, warnings) match across runs except timestamps and durations
 - CWD and PATH determinism:
   - [msi2namd.run()](src/external/msi2namd.py:98) and [msi2lmp.run()](src/external/msi2lmp.py:70) derive working directories from output prefixes/base names
-  - [packmol.run()](src/external/packmol.py:48) writes to the current working directory; [run.py](workspaces/alumina_AS2_hydration_v1/run.py:1) runs it with cwd=outputs to ensure deck resolution is deterministic
+  - [packmol.run()](src/external/packmol.py:48) writes to the current working directory; [run.py](workspaces/alumina/alumina_AS2_hydration_v1/run.py:1) runs it with cwd=outputs to ensure deck resolution is deterministic
   - Wrappers augment PATH with the executable directory for stable dynamic linking
 
 4) CI‑Friendly Guidance
@@ -64,7 +64,7 @@ Scope
   - Provide executables via PATH or absolute paths in config.json; tests will skip rather than fail when they are missing
 
 5) How to Verify Manually
-- After: python [run.py](workspaces/alumina_AS2_hydration_v1/run.py:1) --config [config.json](workspaces/alumina_AS2_hydration_v1/config.json:1)
+- After: python [run.py](workspaces/alumina/alumina_AS2_hydration_v1/run.py:1) --config [config.json](workspaces/alumina/alumina_AS2_hydration_v1/config.json:1)
   - Check artifacts exist and are non‑zero in outputs/
   - Open outputs/summary.json and verify:
     - outputs.lmp_data_file path is present and file is non‑zero

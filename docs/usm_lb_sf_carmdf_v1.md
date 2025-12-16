@@ -29,10 +29,10 @@ Scenarios
 - C2 — R-2-FMBA_PbI4 (monoclinic hybrid): compose CAR coords with MDF topology; selection/merge/renumber; wrap/replicate no-op/unsupported.
 
 How to run
-- Configurable runner lives at [workspaces/usm_lb_sf_carmdf_v1/run.py](workspaces/usm_lb_sf_carmdf_v1/run.py) with config [workspaces/usm_lb_sf_carmdf_v1/config.json](workspaces/usm_lb_sf_carmdf_v1/config.json).
+- Configurable runner lives at [workspaces/other/usm_lb_sf_carmdf_v1/run.py](workspaces/other/usm_lb_sf_carmdf_v1/run.py:1) with config [workspaces/other/usm_lb_sf_carmdf_v1/config.json](workspaces/other/usm_lb_sf_carmdf_v1/config.json:1).
 - Execute:
-  - python workspaces/usm_lb_sf_carmdf_v1/run.py --config workspaces/usm_lb_sf_carmdf_v1/config.json
-- Outputs will be created under workspaces/usm_lb_sf_carmdf_v1/outputs/{A,B,C1,C2}/ with artifacts (.car/.mdf/.pdb) and per-scenario summary.json.
+  - python workspaces/other/usm_lb_sf_carmdf_v1/run.py --config workspaces/other/usm_lb_sf_carmdf_v1/config.json
+- Outputs will be created under workspaces/other/usm_lb_sf_carmdf_v1/outputs/{A,B,C1,C2}/ with artifacts (.car/.mdf/.pdb) and per-scenario summary.json.
 
 Validation patterns
 - CAR round-trip:
@@ -59,7 +59,7 @@ u2 = translate(u.copy(), (0.5, 0.0, 0.0))
 Rz = rotation_matrix_from_axis_angle((0,0,1), 15.0)
 u3 = rotate(u2, Rz)
 u4 = wrap_to_cell(u3)
-save_car(u4, "workspaces/usm_lb_sf_carmdf_v1/outputs/A/FAPbBr2I_xform.car")
+save_car(u4, "workspaces/other/usm_lb_sf_carmdf_v1/outputs/A/FAPbBr2I_xform.car")
 
 2) Compose CAR+MDF to add bonds, then replicate (orthorhombic)
 Python

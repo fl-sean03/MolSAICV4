@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-# Under repo root, ensure we can import molsaicv3
+# Under repo root, ensure we can import this project (src/ is importable for tests)
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in os.sys.path:

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://molsaicv3.local/docs/manifest.v1.schema.json",
-  "title": "MolSAIC V3 Manifest v1",
+  "$id": "https://molsaicv4.local/docs/manifest.v1.schema.json",
+  "title": "MolSAIC V4 Manifest v1",
   "type": "object",
   "additionalProperties": true,
   "properties": {

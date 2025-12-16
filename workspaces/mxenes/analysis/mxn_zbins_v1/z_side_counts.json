@@ -1,0 +1,52 @@
+{
+  "inputs": {
+    "car_path": "workspaces/mxenes/analysis/mxn_zbins_v1/inputs/MXN.car"
+  },
+  "targets": [
+    "omx",
+    "hoy"
+  ],
+  "split": {
+    "method": "auto",
+    "round_precision": 6
+  },
+  "per_type": {
+    "omx": {
+      "top": 288,
+      "bottom": 288,
+      "total": 576,
+      "threshold_z": 4.859999999999999,
+      "unique_z": [
+        {
+          "z_round": 1.296757,
+          "count": 288
+        },
+        {
+          "z_round": 8.423243,
+          "count": 288
+        }
+      ]
+    },
+    "hoy": {
+      "top": 288,
+      "bottom": 288,
+      "total": 576,
+      "threshold_z": 4.859999999999999,
+      "unique_z": [
+        {
+          "z_round": 0.331726,
+          "count": 288
+        },
+        {
+          "z_round": 9.388274,
+          "count": 288
+        }
+      ]
+    }
+  },
+  "aggregate": {
+    "top": 576,
+    "bottom": 576,
+    "total": 1152
+  }
+}

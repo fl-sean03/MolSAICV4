@@ -10,7 +10,7 @@ Related source anchors:
 - New lattice helpers module: [src/usm/ops/lattice.py](src/usm/ops/lattice.py)
 - Core model schema/types (no change expected): [src/usm/core/model.py](src/usm/core/model.py)
 - Limits documentation (to update): [src/usm/docs/LIMITS.md](src/usm/docs/LIMITS.md:1)
-- Workspace runner gating (to update): [workspaces/usm_lb_sf_carmdf_v1/run.py](workspaces/usm_lb_sf_carmdf_v1/run.py:276)
+- Workspace runner gating (to update): [workspaces/other/usm_lb_sf_carmdf_v1/run.py](workspaces/other/usm_lb_sf_carmdf_v1/run.py:276)
 
 ## 1) Background and Motivation
 
@@ -130,7 +130,7 @@ In [src/usm/ops/replicate.py](src/usm/ops/replicate.py:34), replicate_supercell 
 
 7) Commit 4: chore(workspace)
    - Update runner to always exercise wrap/replicate when cell.pbc True and finite params
-     - Remove orthorhombic gating around [workspaces/usm_lb_sf_carmdf_v1/run.py](workspaces/usm_lb_sf_carmdf_v1/run.py:276)
+     - Remove orthorhombic gating around [workspaces/other/usm_lb_sf_carmdf_v1/run.py](workspaces/other/usm_lb_sf_carmdf_v1/run.py:276)
    - Record replicated counts and updated cell in summary.json
 
 8) Commit 5: docs

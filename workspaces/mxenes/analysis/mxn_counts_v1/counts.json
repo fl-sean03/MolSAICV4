@@ -1,0 +1,27 @@
+{
+  "inputs": {
+    "car_path": "workspaces/mxenes/analysis/mxn_counts_v1/inputs/MXN.car",
+    "mdf_path": "workspaces/mxenes/analysis/mxn_counts_v1/inputs/MXN.mdf"
+  },
+  "targets": [
+    "omx",
+    "hoy"
+  ],
+  "car_counts": {
+    "omx": 576,
+    "hoy": 576
+  },
+  "mdf_counts": {
+    "omx": 576,
+    "hoy": 576
+  },
+  "agreement": true,
+  "differences_car_minus_mdf": {
+    "omx": 0,
+    "hoy": 0
+  },
+  "total_atoms": {
+    "car": 2592,
+    "mdf": 2592
+  }
+}

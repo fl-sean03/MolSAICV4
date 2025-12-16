@@ -2,7 +2,7 @@
 
 Purpose
 - Fast path to run the alumina AS2 hydration workspace end‑to‑end and verify outputs.
-- Pattern is code‑first: a plain Python script [run.py](workspaces/alumina_AS2_hydration_v1/run.py:1) orchestrates small library functions and thin wrappers over external tools.
+- Pattern is code‑first: a plain Python script [run.py](workspaces/alumina/alumina_AS2_hydration_v1/run.py:1) orchestrates small library functions and thin wrappers over external tools.
 
 Core entry points
 - [msi2namd.run()](src/external/msi2namd.py:96) → AS2 and WAT PDB/PSF
@@ -25,7 +25,7 @@ Core entry points
 - After install, scripts import usm.*, external.*, and pm2mdfcar.* directly (no PYTHONPATH hacks).
 
 3) Configure the workspace
-- Configuration file: [config.json](workspaces/alumina_AS2_hydration_v1/config.json:1)
+- Configuration file: [config.json](workspaces/alumina/alumina_AS2_hydration_v1/config.json:1)
 - Keys (defaults shown in the file):
   - outputs_dir: "./outputs"
     - Workspace writes artifacts under this directory; subfolders: converted/, simulation/
@@ -57,7 +57,7 @@ Core entry points
 
 5) Run the workspace
 - From the workspace directory:
-  - cd workspaces/alumina_AS2_hydration_v1
+  - cd workspaces/alumina/alumina_AS2_hydration_v1
   - python run.py --config ./config.json
 - Notes on working directories and outputs
   - Step 1 and 2 ([msi2namd.run()](src/external/msi2namd.py:96)) write AS2.* and WAT.* next to outputs_dir
@@ -101,7 +101,7 @@ Core entry points
 - ModuleNotFoundError: No module named usm/external/pm2mdfcar
   - Ensure editable install from repo root:
     - pip install -e .
-  - See developer notes: [DevDoc.md](DevDoc.md:1)
+  - See: [README.md](README.md:1)
 - Executable not found errors
   - Provide absolute paths in config.json under "executables"
   - Ensure executable bit is set and the file is compatible with your OS

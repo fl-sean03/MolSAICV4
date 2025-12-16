@@ -62,7 +62,7 @@ Ions‑in‑water workflows (Packmol)
 - Approach: ions are placed in the aqueous region (not embedded in slabs), matching per‑surface legacy totals while enabling mobility.
 - Guide: [docs/ions-in-water-workflows.md](docs/ions-in-water-workflows.md)
 - When per‑surface workspaces are present, they are typically:
-  - workspaces/alumina_AS2_ions_v1, workspaces/alumina_AS5_ions_v1, workspaces/alumina_AS10_ions_v1, workspaces/alumina_AS12_ions_v1
+  - workspaces/alumina/alumina_AS2_ions_v1, workspaces/alumina/alumina_AS5_ions_v1, workspaces/alumina/alumina_AS10_ions_v1, workspaces/alumina/alumina_AS12_ions_v1
 - Expected outputs per run (under workspace outputs/):
   - hydrated PDB (Packmol), converted CAR/MDF (pm2mdfcar), LAMMPS .data (msi2lmp), summary.json, ion z‑histograms
   - Manifest schema (for validation when used): [docs/manifest.v1.schema.json](docs/manifest.v1.schema.json)

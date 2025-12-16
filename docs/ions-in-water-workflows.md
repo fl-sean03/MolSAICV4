@@ -28,10 +28,10 @@ The template directory contains:
 
 Per-surface workspaces (one each):
 
-- workspaces/alumina_AS2_ions_v1
-- workspaces/alumina_AS5_ions_v1
-- workspaces/alumina_AS10_ions_v1
-- workspaces/alumina_AS12_ions_v1
+- [workspaces/alumina/alumina_AS2_ions_v1](workspaces/alumina/alumina_AS2_ions_v1:1)
+- [workspaces/alumina/alumina_AS5_ions_v1](workspaces/alumina/alumina_AS5_ions_v1:1)
+- [workspaces/alumina/alumina_AS10_ions_v1](workspaces/alumina/alumina_AS10_ions_v1:1)
+- [workspaces/alumina/alumina_AS12_ions_v1](workspaces/alumina/alumina_AS12_ions_v1:1)
 
 Each workspace/run.py performs:
 
@@ -52,12 +52,12 @@ Notes:
 From repository root, each workspace has a config.json specifying executables and inputs.
 
 Examples:
-- AS2:  python3 workspaces/alumina_AS2_ions_v1/run.py --config config.json
-- AS5:  python3 workspaces/alumina_AS5_ions_v1/run.py --config config.json
-- AS10: python3 workspaces/alumina_AS10_ions_v1/run.py --config config.json
-- AS12: python3 workspaces/alumina_AS12_ions_v1/run.py --config config.json
+- AS2:  python3 workspaces/alumina/alumina_AS2_ions_v1/run.py --config config.json
+- AS5:  python3 workspaces/alumina/alumina_AS5_ions_v1/run.py --config config.json
+- AS10: python3 workspaces/alumina/alumina_AS10_ions_v1/run.py --config config.json
+- AS12: python3 workspaces/alumina/alumina_AS12_ions_v1/run.py --config config.json
 
-Outputs are written under workspaces/alumina_ASX_ions_v1/outputs/.
+Outputs are written under workspaces/alumina/alumina_ASX_ions_v1/outputs/.
 
 Key artifacts per run:
 - outputs/hydrated_ASX_ions.pdb

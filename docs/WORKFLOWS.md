@@ -1,23 +1,23 @@
 # MolSAIC V4 Workflows — Code‑First Pattern and Workspace Contract
 
 Goal
-- Explain the V3 workflow pattern and the workspace contract using the alumina AS2 hydration pilot as a concrete example.
+- Explain the V4 workflow pattern and the workspace contract using the alumina AS2 hydration workspace as a concrete example.
 - Show deterministic conventions for CWD and PATH handling, step mapping, and how to customize inputs and extend to similar systems.
 
 Primary references
-- Workspace entry: [run.py](workspaces/alumina_AS2_hydration_v1/run.py:1)
-- Config defaults: [config.json](workspaces/alumina_AS2_hydration_v1/config.json:1)
+- Workspace entry: [run.py](workspaces/alumina/alumina_AS2_hydration_v1/run.py:1)
+- Config defaults: [config.json](workspaces/alumina/alumina_AS2_hydration_v1/config.json:1)
 - External wrappers: [msi2namd.run()](src/external/msi2namd.py:96), [packmol.run()](src/external/packmol.py:46), [msi2lmp.run()](src/external/msi2lmp.py:68)
 - Composition op: [pm2mdfcar.build()](src/pm2mdfcar/__init__.py:392)
 
-1) V3 Pattern
+1) V4 Pattern
 - Code‑first: workspaces are plain Python scripts that import a small, deterministic library surface and call external executables via thin wrappers.
 - Minimal configuration: each workspace has a small JSON file with paths, parameters, and executable hints.
 - Single run command: invoke run.py with a config, and all artifacts are written under outputs/.
 
 Workspace contract
 - Layout inside each workspace directory:
-  - run.py: the orchestrator script, e.g., [run.py](workspaces/alumina_AS2_hydration_v1/run.py:1)
+  - run.py: the orchestrator script, e.g., [run.py](workspaces/alumina/alumina_AS2_hydration_v1/run.py:1)
   - config.json: inputs, parameters, executables, timeouts, and outputs_dir
   - outputs/: created on first run, with standardized subfolders
     - outputs/converted: CAR and MDF produced by composition
@@ -43,7 +43,7 @@ Workspace contract
   - Wrappers check for missing inputs and fail fast with clear exceptions.
   - Outputs are validated for existence and non‑zero size before returning.
 - Timeouts:
-  - Each wrapper enforces a timeout (configurable via timeouts_s in [config.json](workspaces/alumina_AS2_hydration_v1/config.json:1)) and raises on expiry.
+  - Each wrapper enforces a timeout (configurable via timeouts_s in [config.json](workspaces/alumina/alumina_AS2_hydration_v1/config.json:1)) and raises on expiry.
 
 3) Step Semantics and Mapping
 - Step 1: AS2 PDB and PSF
@@ -114,7 +114,7 @@ flowchart LR
 - Tune parameters:
   - Update residue labels, target_c, and forcefield file paths
 - Keep the contract:
-  - Maintain outputs/ structure and write a summary.json with inputs, tools, timings, outputs, counts, cell, and warnings as done by [run.py](workspaces/alumina_AS2_hydration_v1/run.py:1)
+  - Maintain outputs/ structure and write a summary.json with inputs, tools, timings, outputs, counts, cell, and warnings as done by [run.py](workspaces/alumina/alumina_AS2_hydration_v1/run.py:1)
 
 6) Wrapper Behaviors and Assumptions Summary
 - [msi2namd.run()](src/external/msi2namd.py:96)

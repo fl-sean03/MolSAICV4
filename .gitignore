@@ -225,10 +225,23 @@ playground/
 drafts/
 
 # === Custom workspace ===
-# Keep most workspaces ignored, but allow committing usm_lb_sf_carmdf_v1 runner
+# Keep most workspaces ignored, but allow committing a small, curated set of reference workspaces/artifacts
 workspaces/
-!workspaces/usm_lb_sf_carmdf_v1/
-!workspaces/usm_lb_sf_carmdf_v1/**
+
+# Allow committing the USM LB_SF CAR/MDF runner (moved under workspaces/other/)
+!workspaces/other/
+!workspaces/other/usm_lb_sf_carmdf_v1/
+!workspaces/other/usm_lb_sf_carmdf_v1/**
+
+# Allow committing a few small reference analysis artifacts (sanitized paths).
+# Note: because workspaces/ is ignored, we must un-ignore parent directories too.
+!workspaces/mxenes/
+!workspaces/mxenes/analysis/
+!workspaces/mxenes/analysis/mxn_counts_v1/
+!workspaces/mxenes/analysis/mxn_counts_v1/counts.json
+!workspaces/mxenes/analysis/mxn_zbins_v1/
+!workspaces/mxenes/analysis/mxn_zbins_v1/z_side_counts.json
+
 notes/
 data/
 docs/_build/

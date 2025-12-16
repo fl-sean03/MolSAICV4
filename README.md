@@ -1,110 +1,158 @@
-# MolSAIC V4 — code‑first library and minimal, deterministic workflows
+# MolSAIC V4 — deterministic, code-first workflows for atomistic structures
 
-MolSAIC V4 focuses on a simple, stable Python library and small, direct scripts you can run and version as you like. No plugin registries or YAML DAGs — just import functions, call thin wrappers for external tools when needed, and write artifacts in a predictable layout.
+MolSAIC (Molecular/Materials Structure Assembly, I/O, and Composition) is a **Python codebase for building, transforming, and validating atomistic structures** using a small, stable library surface plus **plain Python “workspaces”** (simple `run.py` scripts) that produce reproducible artifacts.
 
-Highlights
-- Minimal ceremony: use a tiny run.py or a notebook; configs are optional.
-- Stable import surface: usm.*, external.*, pm2mdfcar.*.
-- Deterministic behavior: stable table ordering, seeded tools, validated outputs.
+The V4 philosophy is intentionally simple:
 
-Install (editable)
-- From repository root:
-  ```
-  python -m pip install -e .
-  ```
-- Python 3.9+ (see [pyproject.toml](pyproject.toml))
+- **Code-first** orchestration (no plugin registries, no DAG engines, no required YAML).
+- **Determinism-first** behavior (stable ordering, explicit working directories, validated outputs).
+- **Composable building blocks** (structure model + parameter packages + thin wrappers for external tools).
 
-Stable modules (entry points)
-- USM IO and core:
-  - [src/usm/io/car.py](src/usm/io/car.py)
-  - [src/usm/io/mdf.py](src/usm/io/mdf.py)
-  - [src/usm/io/pdb.py](src/usm/io/pdb.py)
-  - [src/usm/core/model.py](src/usm/core/model.py)
-- USM operations (selection, transforms, merge/compose, renumber, cell helpers):
-  - [src/usm/ops/](src/usm/ops)
-- Hydration composition:
-  - [src/pm2mdfcar/__init__.py](src/pm2mdfcar/__init__.py)
-- External tool adapters and wrappers:
-  - [src/external/adapter.py](src/external/adapter.py)
-  - [src/external/packmol.py](src/external/packmol.py)
-  - [src/external/msi2namd.py](src/external/msi2namd.py)
-  - [src/external/msi2lmp.py](src/external/msi2lmp.py)
+---
 
-Quickstart (library-first)
-1) Read/edit/write a CAR file (no config required)
-- Example sketch (Python):
-  - Load a CAR into a USM instance (DataFrame tables)
-  - Edit usm.atoms (e.g., select/filter/transform with pandas/numpy/usm.ops)
-  - Save back to CAR (headers preserved when available) and/or MDF/PDB
-- Files: [src/usm/io/car.py](src/usm/io/car.py), [src/usm/io/mdf.py](src/usm/io/mdf.py), [src/usm/io/pdb.py](src/usm/io/pdb.py), [src/usm/ops/](src/usm/ops)
+## What MolSAIC is (and what it isn’t)
 
-2) Use external wrappers when needed
-- Thin, deterministic wrappers around third‑party executables:
-  - Packmol → hydrated PDB
-  - msi2namd → PDB/PSF
-  - msi2lmp → LAMMPS .data
-- Files: [src/external/packmol.py](src/external/packmol.py), [src/external/msi2namd.py](src/external/msi2namd.py), [src/external/msi2lmp.py](src/external/msi2lmp.py), [src/external/adapter.py](src/external/adapter.py)
-- Notes:
-  - PATH is augmented with the executable’s directory for linker stability.
-  - Wrappers enforce timeouts and validate that outputs are created and non‑empty.
-  - A best‑effort tool_version is captured to aid reproducibility.
+**MolSAIC is:**
+- A set of **deterministic primitives** for structure I/O and structure manipulation.
+- A set of **thin, testable wrappers** around third-party executables (e.g., Packmol / MSI converters).
+- A collection of **workspace examples** that demonstrate end-to-end pipelines with reproducible outputs.
 
-3) Compose hydrated systems (optional)
-- Convert templates to PDB/PSF (msi2namd), pack waters/ions (Packmol), compose CAR/MDF (pm2mdfcar), then emit a LAMMPS .data (msi2lmp).
-- Files: [src/pm2mdfcar/__init__.py](src/pm2mdfcar/__init__.py), [src/external/packmol.py](src/external/packmol.py), [src/external/msi2namd.py](src/external/msi2namd.py), [src/external/msi2lmp.py](src/external/msi2lmp.py)
+**MolSAIC is not:**
+- A workflow engine or registry-driven framework.
+- A monolithic “do everything” chemistry stack.
+- A replacement for full crystallography suites (those can be layered on top and converted into MolSAIC structures).
 
-USM design and data model (deeper docs)
-- Overview and schema: [src/usm/docs/DESIGN.md](src/usm/docs/DESIGN.md), [src/usm/docs/DATA_MODEL.md](src/usm/docs/DATA_MODEL.md)
-- Workflows and examples: [src/usm/docs/WORKFLOWS.md](src/usm/docs/WORKFLOWS.md), [src/usm/docs/EXAMPLES.md](src/usm/docs/EXAMPLES.md)
-- Limits and performance: [src/usm/docs/LIMITS.md](src/usm/docs/LIMITS.md), [src/usm/docs/PERFORMANCE.md](src/usm/docs/PERFORMANCE.md)
+---
 
-Ions‑in‑water workflows (Packmol)
-- Approach: ions are placed in the aqueous region (not embedded in slabs), matching per‑surface legacy totals while enabling mobility.
-- Guide: [docs/ions-in-water-workflows.md](docs/ions-in-water-workflows.md)
-- When per‑surface workspaces are present, they are typically:
-  - workspaces/alumina/alumina_AS2_ions_v1, workspaces/alumina/alumina_AS5_ions_v1, workspaces/alumina/alumina_AS10_ions_v1, workspaces/alumina/alumina_AS12_ions_v1
-- Expected outputs per run (under workspace outputs/):
-  - hydrated PDB (Packmol), converted CAR/MDF (pm2mdfcar), LAMMPS .data (msi2lmp), summary.json, ion z‑histograms
-  - Manifest schema (for validation when used): [docs/manifest.v1.schema.json](docs/manifest.v1.schema.json)
+## Core building blocks (extensibility model)
 
-Determinism, manifests, and tests
-- Determinism
-  - Stable table ordering and renumbering
-  - Seeded packing (Packmol) when a seed is provided
-  - Consistent working directories and PATH behavior in wrappers
-- Manifest schema
-  - Optional summary.json for runs that choose to emit a manifest
-  - Schema file: [docs/manifest.v1.schema.json](docs/manifest.v1.schema.json)
-- Tests
-  - Integration tests (hydration/ions variants):
-    - [tests/integration/test_hydration_workspaces.py](tests/integration/test_hydration_workspaces.py)
-    - [tests/integration/test_ions_workspaces.py](tests/integration/test_ions_workspaces.py)
+MolSAIC V4 is organized around a few intentionally small packages:
 
-Repository layout (current)
-- Library: [src/](src)
-  - USM core/IO/ops: [src/usm/](src/usm)
-  - External wrappers: [src/external/](src/external)
-  - Hydration compose op: [src/pm2mdfcar/](src/pm2mdfcar)
-- Docs: [docs/](docs)
-- Utility scripts: [scripts/](scripts)
-- Tests: [tests/](tests)
+### 1) USM — Unified Structure Model (structure + deterministic ops)
+USM is the structure kernel: a dependency-light Python library that represents **atoms + bonds + periodic cell**, provides deterministic operations, and reads/writes common structure formats.
 
-Conventions
-- No required config files — parse your own if desired.
-- No required outputs/ or baselines/ structure — write artifacts where it makes sense for your job (workspaces commonly use an outputs/ subfolder).
-- Keep imports within the stable surface usm.*, external.*, pm2mdfcar.* (avoid ad‑hoc sys.path edits).
+- In this repo, USM is included as a **git submodule** at `src/usm/`.
+- Docs live in the USM submodule: `src/usm/docs/`.
 
-Troubleshooting
-- ModuleNotFoundError: usm/external/pm2mdfcar
-  - Ensure editable install from repo root:
-    ```
-    python -m pip install -e .
-    ```
-- External executables not found (packmol, msi2namd, msi2lmp)
-  - Provide absolute paths in your script/config, or make sure they are on PATH.
-  - Wrapper behavior and helpers: [src/external/adapter.py](src/external/adapter.py)
-- Parquet not installed (optional)
-  - USM bundle I/O prefers Parquet but falls back to CSV automatically; install pyarrow for better performance.
+Key entry points (examples):
+- CAR/MDF/PDB I/O: `src/usm/io/`
+- Deterministic ops (select/transform/replicate/merge/compose/...): `src/usm/ops/`
+- Core data model: `src/usm/core/model.py`
 
-Notes
-- This README reflects MolSAIC V4. Older references and paths have been removed in favor of the simplified, code‑first model described here.
+### 2) External adapters — deterministic envelopes around executables
+MolSAIC provides wrappers for third-party tools with a consistent “result envelope”:
+- deterministic CWD
+- PATH augmentation for linker stability
+- output existence + non-empty validation
+- best-effort tool version capture
+
+See:
+- Contract: `docs/ADAPTER_CONTRACT.md`
+- Helpers: `src/external/adapter.py`
+- Wrappers: `src/external/packmol.py`, `src/external/msi2namd.py`, `src/external/msi2lmp.py`
+
+### 3) Workspace pipelines — simple scripts you can version and customize
+Workspaces are plain directories under `workspaces/` containing:
+- `run.py` (the orchestrator)
+- `config.json` (small, explicit config)
+- `outputs/` (generated artifacts; typically contains `summary.json`)
+
+This model keeps pipelines **transparent** and **easy to fork** without framework lock-in.
+
+Start here:
+- Docs landing page: `docs/README.md`
+- Workspace contract: `docs/WORKFLOWS.md`
+- Quickstart: `docs/QUICKSTART.md`
+
+### 4) UPM — Unified Parameter Model (versioned force-field packages)
+UPM is a **standalone** Python library + CLI for managing, validating, and exporting **force-field parameter packages** (starting with Materials Studio / BIOSYM-style `*.frc` used by `msi2lmp`).
+
+- In this repo, UPM lives under `src/upm/` with its own `pyproject.toml`.
+- UPM is currently **installed separately** from the MolSAIC root package.
+
+See: `src/upm/README.md`
+
+---
+
+## Getting started
+
+### Install MolSAIC (editable)
+From repository root:
+
+```bash
+python -m pip install -e .
+```
+
+### Run a workspace (example: alumina AS2 hydration)
+```bash
+cd workspaces/alumina/alumina_AS2_hydration_v1
+python run.py --config ./config.json
+```
+
+- End-to-end guide: `docs/QUICKSTART.md`
+- Deterministic conventions and step mapping: `docs/WORKFLOWS.md`
+
+### Install UPM (optional; separate package)
+UPM has its own packaging metadata and Python requirement (see `src/upm/pyproject.toml`).
+
+From repository root:
+
+```bash
+python -m pip install -e ./src/upm
+```
+
+---
+
+## Reproducibility and determinism
+
+MolSAIC V4 emphasizes determinism for both library operations and workflows:
+
+- Stable table ordering and renumbering in structure operations.
+- Seed capture where applicable (e.g., Packmol seed injection).
+- Deterministic working directories for external tools (no implicit global state).
+- Validation that required outputs are created and non-empty.
+- Optional `outputs/summary.json` manifests for machine-consumable run summaries.
+
+Key docs:
+- External adapter contract: `docs/ADAPTER_CONTRACT.md`
+- Manifest schema: `docs/manifest.v1.schema.json`
+
+---
+
+## Repository layout (high level)
+
+- `src/`
+  - `src/molsaic/` — small shared utilities (workspace helpers, etc.)
+  - `src/usm/` — USM submodule (structure model + I/O + ops)
+  - `src/external/` — external tool adapter contract + wrappers
+  - `src/pm2mdfcar/` — composition utilities used by hydration/ions workspaces
+  - `src/upm/` — UPM standalone package (separate install)
+- `docs/` — MolSAIC V4 documentation
+- `workspaces/` — runnable pipelines and analysis scripts
+- `tests/` — unit + integration tests
+
+---
+
+## Contributing / extending MolSAIC
+
+The intended extension points are straightforward:
+
+1) **Add a new workspace**
+- Copy the workspace template and customize inputs/steps.
+- Write artifacts under `outputs/` and (optionally) a manifest `summary.json`.
+- Document it in `docs/` if it becomes a canonical workflow.
+
+2) **Add a new external adapter**
+- Follow the envelope contract in `docs/ADAPTER_CONTRACT.md`.
+- Implement `run(...)->dict` returning a deterministic result (argv/cwd/outputs/stderr/stdout/duration/version).
+- Add unit tests that validate schema keys and output validation behavior.
+
+3) **Extend structure capabilities**
+- Extend USM (in the USM repo/submodule) for new I/O formats or deterministic operations.
+- Keep project-specific policies in workspaces, not in USM core.
+
+---
+
+## License / status
+
+This repository is under active development. The V4 docs under `docs/` reflect the current code-first architecture and are intended to be the canonical reference for MolSAIC V4.

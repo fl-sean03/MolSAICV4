@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 from pathlib import Path
 import subprocess
@@ -39,8 +40,21 @@ def test_msi2namd_wrapper_schema_monkeypatch(tmp_path: Path, monkeypatch):
     if exe is None:
         pytest.skip("No simple system binary available for existence check")
 
-    # Fake subprocess.run inside the msi2namd module only
-    def fake_run(cmd, cwd=None, env=None, capture_output=True, text=True, timeout=10, check=True):
+    # Fake subprocess.run inside the msi2namd module only.
+    # Keep signature compatible with subprocess.run across Python versions and our wrappers
+    # (which may pass encoding/errors).
+    def fake_run(
+        cmd,
+        cwd=None,
+        env=None,
+        capture_output=True,
+        text=True,
+        encoding=None,
+        errors=None,
+        timeout=10,
+        check=True,
+        **_kwargs,
+    ):
         # Determine output file base from "-output" arg
         assert "-output" in cmd
         name = cmd[cmd.index("-output") + 1]
@@ -100,8 +114,20 @@ def test_msi2lmp_wrapper_schema_and_normalization(tmp_path: Path, monkeypatch):
     if exe is None:
         pytest.skip("No simple system binary available for existence check")
 
-    # Fake run inside msi2lmp to emit a minimal LAMMPS .data in base dir
-    def fake_run(cmd, cwd=None, env=None, capture_output=True, text=True, timeout=10, check=True):
+    # Fake run inside msi2lmp to emit a minimal LAMMPS .data in base dir.
+    # Keep signature compatible with wrappers that may pass encoding/errors.
+    def fake_run(
+        cmd,
+        cwd=None,
+        env=None,
+        capture_output=True,
+        text=True,
+        encoding=None,
+        errors=None,
+        timeout=10,
+        check=True,
+        **_kwargs,
+    ):
         base_stem = cmd[1]
         cwd_path = Path(cwd or ".")
         data_path = cwd_path / f"{base_stem}.data"
@@ -134,6 +160,7 @@ def test_msi2lmp_wrapper_schema_and_normalization(tmp_path: Path, monkeypatch):
         output_prefix=str(out_prefix),
         normalize_xy=True,
         normalize_z_to=50.0,
+        normalize_z_shift=True,  # explicit: legacy behavior
         timeout_s=5,
     )
 
@@ -165,6 +192,49 @@ def test_msi2lmp_wrapper_schema_and_normalization(tmp_path: Path, monkeypatch):
     # Z shift so min(z)=0
     assert "1 1 1 -0.5 1.0 2.0 0.000000" in text
     assert "2 1 1 0.5 3.0 4.0 1.000000" in text
+
+    # Also verify we can disable the legacy Z-shift (preserve original atom z values)
+    out_prefix2 = outdir / "sample_hydration_nozshift"
+    res2 = msi2lmp.run(
+        base_name=str(base),
+        frc_file=str(frc),
+        exe_path=exe,
+        output_prefix=str(out_prefix2),
+        normalize_xy=True,
+        normalize_z_to=50.0,
+        normalize_z_shift=False,
+        timeout_s=5,
+    )
+    out_file2 = Path(res2["lmp_data_file"])
+    text2 = out_file2.read_text(encoding="utf-8")
+
+    # XY still normalized
+    assert "0.000000 10.000000 xlo xhi" in text2
+    assert "0.000000 20.000000 ylo yhi" in text2
+    # Header z is normalized because normalize_z_to was provided
+    assert "0.000000 50.000000 zlo zhi" in text2
+    # But atom z values remain unshifted (-1.0 and 0.0 from stub).
+    # When normalize_z_shift=False we intentionally do NOT rewrite Atoms lines, so formatting may remain "-1.0"/"0.0".
+    lines2 = [ln.strip() for ln in text2.splitlines()]
+    atoms_start = None
+    for i, ln in enumerate(lines2):
+        if ln.startswith("Atoms"):
+            atoms_start = i + 1
+            break
+    assert atoms_start is not None
+
+    atom_lines = []
+    for ln in lines2[atoms_start:]:
+        if not ln:
+            continue
+        if re.match(r"^(Bonds|Angles|Dihedrals|Impropers|Velocities|Masses|Pair Coeffs|Bond Coeffs|Angle Coeffs|Dihedral Coeffs|Improper Coeffs)\b", ln, re.IGNORECASE):
+            break
+        if ln[0].isdigit():
+            atom_lines.append(ln)
+
+    # Expect two Atoms lines from stub: extract z (Atoms # full => x y z are tokens 4,5,6)
+    zs = [float(ln.split()[6]) for ln in atom_lines[:2]]
+    assert zs == [-1.0, 0.0]
 
 
 @pytest.mark.unit

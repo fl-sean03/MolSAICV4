@@ -198,6 +198,15 @@ outputs/
 .Trash-*
 ._*
 .Spotlight-V100
+
+# === MolSAIC: local generated artifacts (do not commit) ===
+/--version.data
+/-h.data
+/-v.data
+/-version.data
+/stdout.txt
+/stderr.txtnRC=0necho
+/rc.txtnls
 .fseventsd
 
 # === Local config ===

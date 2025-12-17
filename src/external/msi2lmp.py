@@ -22,8 +22,11 @@ Contract compliance (v0.1.1):
 Post-processing:
 - Optional header normalization supports:
   - XY normalization to [0,a]/[0,b] using CAR PBC when requested
-  - Z normalization to [0, normalize_z_to or CAR PBC c] and uniform atom Z shift
-    so min(z)=0 (legacy parity)
+  - Z header normalization to [0, normalize_z_to or CAR PBC c]
+  - Optional Z coordinate normalization:
+    - legacy: uniform atom Z shift so min(z)=0
+    - centering: uniform atom Z shift so the structure midpoint (zmin+zmax)/2 maps to z_target/2
+      (centering takes precedence over legacy shifting)
 """
 
 from __future__ import annotations
@@ -57,6 +60,8 @@ def _run(cmd: list[str], cwd: Path, env: dict, timeout_s: int) -> tuple[float, s
         env=env,
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         timeout=timeout_s,
         check=True,
     )
@@ -116,6 +121,8 @@ def run(
     output_prefix: str,
     normalize_xy: bool = True,
     normalize_z_to: float | None = None,
+    normalize_z_shift: bool = True,
+    normalize_z_center: bool = False,
     timeout_s: int = 600,
     work_dir: str | None = None,
 ) -> dict:
@@ -127,7 +134,10 @@ def run(
     - exe_path: path to the msi2lmp executable
     - output_prefix: target basename (may include directory) for the resulting .data
     - normalize_xy: normalize x/y header extents using CAR PBC a/b when available
-    - normalize_z_to: if provided, set header 'zlo zhi' to 0.0 and this value, and uniformly shift atoms so min(z)=0
+    - normalize_z_to: if provided, normalize header 'zlo zhi' to 0.0 and this value
+    - normalize_z_shift: if True, uniformly shift atom Z so min(z)=0 during post-processing (legacy behavior)
+    - normalize_z_center: if True, uniformly shift atom Z so the midpoint (zmin+zmax)/2 maps to z_target/2.
+      This takes precedence over normalize_z_shift (they are mutually exclusive; centering wins).
     - timeout_s: seconds before the process is terminated
     - work_dir: optional explicit working directory to run within (deterministic)
 
@@ -210,14 +220,32 @@ def run(
 
     out_name = Path(output_prefix).name if output_prefix else base_stem
 
-    cmd = [str(exe), base_stem, "-f", str(frc_abs)]
+    # NOTE: msi2lmp has legacy behavior where it may try to open forcefields from
+    # "../frc_files/<frc_filename>" relative to its CWD, even if an absolute path is provided.
+    # To be robust/deterministic, always stage the frc into that location as well, and pass the
+    # basename to match the tool's expectation.
+    frc_dir = wd.parent / "frc_files"
+    frc_dir.mkdir(parents=True, exist_ok=True)
+    staged_frc = _stage_file(frc_abs, frc_dir)
+
+    cmd = [str(exe), base_stem, "-f", staged_frc.name]
     env = _augment_env(str(exe))
 
     try:
         duration, stdout, stderr = _run(cmd, cwd=wd, env=env, timeout_s=timeout_s)
     except subprocess.CalledProcessError as e:
-        msg = e.stderr or e.stdout or str(e)
-        raise RuntimeError(f"msi2lmp failed with exit code {e.returncode}: {msg.strip()}") from e
+        # Persist stdout/stderr deterministically even on failure so workspaces have diagnostics.
+        stdout_text = e.stdout or ""
+        stderr_text = e.stderr or ""
+        stdout_path.write_text(stdout_text, encoding="utf-8")
+        stderr_path.write_text(stderr_text, encoding="utf-8")
+
+        # Provide a concise error message but point to the persisted logs for full context.
+        msg = (stderr_text.strip() or stdout_text.strip() or str(e)).strip()
+        raise RuntimeError(
+            f"msi2lmp failed with exit code {e.returncode}: {msg}\n"
+            f"(see {stdout_path} and {stderr_path})"
+        ) from e
 
     stdout_text = stdout or ""
     stderr_text = stderr or ""
@@ -230,9 +258,12 @@ def run(
 
     # Determine output destination (always within workdir to keep artifacts colocated)
     data_out = wd / f"{out_name}.data"
-    if data_out.exists():
-        data_out.unlink()
+
+    # IMPORTANT: if out_name == base_stem, data_out == data_in.
+    # Do NOT unlink in that case, or we'd delete the freshly created output.
     if data_in.resolve() != data_out.resolve():
+        if data_out.exists():
+            data_out.unlink()
         shutil.move(str(data_in), str(data_out))
 
     # Post-process header to match legacy behavior:
@@ -257,7 +288,15 @@ def run(
                 pass
             return a, b, c
 
-        def _normalize_data_file(data_path: Path, a_dim, b_dim, do_xy: bool, z_target):
+        def _normalize_data_file(
+            data_path: Path,
+            a_dim,
+            b_dim,
+            do_xy: bool,
+            z_target,
+            do_z_shift: bool,
+            do_z_center: bool,
+        ):
             def _fmt(x: float) -> str:
                 return f"{x:.6f}"
 
@@ -350,9 +389,18 @@ def run(
                     if z_val > z_max:
                         z_max = z_val
 
-                # Pass 2: rewrite atoms lines with shifted z (uniform shift so min(z)=0)
-                if z_min != float("inf"):
-                    z_shift = -z_min
+                # Pass 2 (optional): rewrite atoms lines with uniformly shifted z.
+                # Precedence: centering wins over legacy min(z)=0 shifting.
+                z_shift = None
+                if do_z_center:
+                    if z_target is not None and z_min != float("inf") and z_max != -float("inf"):
+                        z_mid = 0.5 * (z_min + z_max)
+                        z_shift = 0.5 * float(z_target) - z_mid
+                elif do_z_shift:
+                    if z_min != float("inf"):
+                        z_shift = -z_min
+
+                if z_shift is not None:
                     for j in range(start, end):
                         original = lines[j]
                         head, sep, comment = original.partition("#")
@@ -364,14 +412,16 @@ def run(
                         if z_index is None or z_val is None:
                             lines[j] = original.rstrip()
                             continue
-                        parts[z_index] = _fmt(z_val + z_shift)
+                        parts[z_index] = _fmt(z_val + float(z_shift))
                         new_left = " ".join(parts)
                         # Ensure a space before '#' so image flags and comments don't merge
                         lines[j] = (new_left + (" " + sep + comment if sep else "")).rstrip()
 
-                # Update Z header
-                if z_idx is not None:
-                    # prefer explicit target; else use span after shift
+                # Update Z header:
+                # - If z_target is provided, always normalize header to [0, z_target]
+                # - Else if we performed a legacy z-shift, normalize to [0, span]
+                # - Else leave header unchanged
+                if z_idx is not None and (z_target is not None or (do_z_shift and not do_z_center)):
                     if z_target is None:
                         zhi_val = (z_max - z_min) if (z_min != float("inf") and z_max != -float("inf")) else None
                     else:
@@ -385,8 +435,31 @@ def run(
 
         a_dim, b_dim, c_dim = _parse_abc_from_car(staged_car)
         z_target = normalize_z_to if normalize_z_to is not None else c_dim
-        _normalize_data_file(data_out, a_dim, b_dim, bool(normalize_xy), z_target)
-        logger.info("Applied post-msi2lmp normalization to LAMMPS .data (header and Z shift).")
+
+        do_z_center = bool(normalize_z_center)
+        if do_z_center and z_target is None:
+            logger.warning(
+                "normalize_z_center=True but z_target is unknown (no normalize_z_to and CAR PBC c not parsed); skipping Z-centering."
+            )
+            do_z_center = False
+
+        # Precedence: centering wins over legacy shifting
+        do_z_shift = bool(normalize_z_shift) and (not do_z_center)
+
+        _normalize_data_file(
+            data_out,
+            a_dim,
+            b_dim,
+            bool(normalize_xy),
+            z_target,
+            do_z_shift,
+            do_z_center,
+        )
+        logger.info(
+            "Applied post-msi2lmp normalization to LAMMPS .data (header; Z shift=%s; Z center=%s).",
+            bool(do_z_shift),
+            bool(do_z_center),
+        )
     except Exception as _:
         # Do not fail the overall run on normalization issues in this subtask
         pass

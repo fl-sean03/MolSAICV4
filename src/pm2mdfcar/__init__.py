@@ -1207,33 +1207,78 @@ def _format_numeric_or_question(value, is_float=False, default_val='?', is_forma
                 return default_val
 
 def _to_old_full_label(label_token: str) -> str:
+    """
+    Normalize the first MDF column ("label") into the legacy `XXXX_####:NAME` form.
+
+    Why:
+    - `msi2lmp` expects CAR/MDF labels to agree. It effectively compares
+      `XXXX_####:<car_label>` (from CAR) with `XXXX_####:<mdf_label>` (from MDF).
+    - Our hydrated pH workflows include counterions with names like `na+2593Na`.
+      The legacy normalization regex used to reject '+' / '-' and therefore left
+      labels in the underscore form (e.g. `XXXX_2593_na+2593Na`), which does not
+      match the CAR-side `XXXX_2593:na+2593Na`.
+
+    Policy:
+    - Allow '+'/'-' in the "name" portion of the stamp so ions normalize the same
+      way as slab/water atoms.
+    """
     if not isinstance(label_token, str) or not label_token:
         return label_token or ""
     s = label_token.strip()
-    if _re.match(r"^XXXX_\d+:[A-Za-z0-9_]+$", s):
+
+    # allow ion-like labels (na+, cl-) in the "name" field
+    name_re = r"[A-Za-z0-9_+\-]+"
+
+    if _re.match(rf"^XXXX_\d+:{name_re}$", s):
         return s
-    m = _re.match(r"^MOL_\d+:(XXXX_\d+)_([A-Za-z0-9_]+)$", s)
+
+    m = _re.match(rf"^MOL_\d+:(XXXX_\d+)_({name_re})$", s)
     if m:
         return f"{m.group(1)}:{m.group(2)}"
-    m = _re.match(r"^(XXXX_\d+)_([A-Za-z0-9_]+)$", s)
+
+    m = _re.match(rf"^(XXXX_\d+)_({name_re})$", s)
     if m:
         return f"{m.group(1)}:{m.group(2)}"
-    m = _re.match(r"^MOL_\d+:(XXXX_\d+:[A-Za-z0-9_]+)$", s)
+
+    m = _re.match(rf"^MOL_\d+:(XXXX_\d+:{name_re})$", s)
     if m:
         return m.group(1)
+
     return s
 
 def _transform_connections_to_old(connections_str: str) -> str:
+    """
+    Convert connection tokens into the legacy label style without losing MSI-style suffix metadata.
+
+    Tokens can look like:
+      - "XXXX_123:O"
+      - "XXXX_123:O%0-10#1"
+      - "O%100#1"
+
+    IMPORTANT:
+    Historically we used a regex that only preserved bare '%' / '#', which truncated suffixes like
+    '%0-10#1' to '%' and broke downstream tools (notably msi2lmp connect-count validation).
+    """
     if not isinstance(connections_str, str) or not connections_str.strip():
         return ""
-    out_tokens = []
+    out_tokens: list[str] = []
     for token in connections_str.split():
-        m = _re.match(r"^(\S+?)([%#]*)$", token)
-        if not m:
-            out_tokens.append(token)
-            continue
-        atom_id, op = m.groups()
-        out_tokens.append(_to_old_full_label(atom_id) + (op or ""))
+        s = str(token)
+
+        idx_pct = s.find("%")
+        idx_hash = s.find("#")
+        idxs = [i for i in (idx_pct, idx_hash) if i != -1]
+        cut = min(idxs) if idxs else -1
+
+        if cut == -1:
+            atom_id = s
+            op = ""
+        else:
+            atom_id = s[:cut]
+            op = s[cut:]
+
+        out_tokens.append(_to_old_full_label(atom_id) + op)
+
     return " ".join(out_tokens)
 
 def write_mdf(prefix, output_mdf=None):
@@ -1448,14 +1493,19 @@ def write_car(prefix_path: _Path, output_car_path: _Path = None):
             charge = row.get('charge')
 
             base_label = None
-            m = _re.match(r'^XXXX_\d+:([A-Za-z0-9_]+)$', full)
-            if m: base_label = m.group(1)
+            # allow ion-like labels (na+, cl-) in the label/name field
+            name_re = r'[A-Za-z0-9_+\-]+'
+            m = _re.match(rf'^XXXX_\d+:({name_re})$', full)
+            if m:
+                base_label = m.group(1)
             if base_label is None:
-                m = _re.match(r'^MOL_\d+:(XXXX_\d+)_([A-Za-z0-9_]+)$', full)
-                if m: base_label = m.group(2)
+                m = _re.match(rf'^MOL_\d+:(XXXX_\d+)_({name_re})$', full)
+                if m:
+                    base_label = m.group(2)
             if base_label is None:
-                m = _re.match(r'^(XXXX_\d+)_([A-Za-z0-9_]+)$', full)
-                if m: base_label = m.group(2)
+                m = _re.match(rf'^(XXXX_\d+)_({name_re})$', full)
+                if m:
+                    base_label = m.group(2)
             if base_label is None:
                 base_label = str(row.get('label') or row.get('car_label') or row.get('element') or '')
 
@@ -1588,10 +1638,20 @@ def build_combined_mdf(
                 return ''
             new_conns: _List[str] = []
             for part in conn_str.split():
-                m = _re.match(r'([^%#]+)([%#]*)', part)
-                if not m:
-                    continue
-                token, operator = m.groups()
+                s = str(part)
+
+                # Preserve full operator suffix (e.g. "%0-10#1"), not just bare '%'/'#'
+                idx_pct = s.find("%")
+                idx_hash = s.find("#")
+                idxs = [i for i in (idx_pct, idx_hash) if i != -1]
+                cut = min(idxs) if idxs else -1
+
+                if cut == -1:
+                    token = s
+                    operator = ""
+                else:
+                    token = s[:cut]
+                    operator = s[cut:]
 
                 if _re.match(r'^XXXX_\d+:', token):
                     token_full = token

@@ -204,6 +204,7 @@ outputs/
 /-h.data
 /-v.data
 /-version.data
+/u.data
 /stdout.txt
 /stderr.txtnRC=0necho
 /rc.txtnls

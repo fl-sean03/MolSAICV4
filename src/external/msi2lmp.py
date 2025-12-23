@@ -31,87 +31,32 @@ Post-processing:
 
 from __future__ import annotations
 
-import filecmp
-import hashlib
-import json
 import logging
-import os
-import re
 import shutil
 import subprocess
-import time
 from pathlib import Path
-from .adapter import ExternalToolResult, augment_env_with_exe_dir, get_tool_version
+
+from .adapter import ExternalToolResult, get_tool_version
+
+# Import from private modules
+from ._msi2lmp_helpers import (
+    ensure_file as _ensure_file,
+    stage_file as _stage_file,
+    sha256_file as _sha256_file,
+    write_result_json as _write_result_json,
+)
+from ._msi2lmp_argv import (
+    frc_looks_cvff_labeled as _frc_looks_cvff_labeled,
+    build_msi2lmp_argv as _build_msi2lmp_argv,
+    augment_env as _augment_env,
+    run_command as _run,
+)
+from ._lmp_normalize import (
+    parse_abc_from_car as _parse_abc_from_car,
+    normalize_data_file as _normalize_data_file,
+)
 
 logger = logging.getLogger(__name__)
-
-
-def _augment_env(exe_path: str) -> dict:
-    """Delegate to shared adapter helper for PATH augmentation."""
-    return augment_env_with_exe_dir(exe_path)
-
-
-def _run(cmd: list[str], cwd: Path, env: dict, timeout_s: int) -> tuple[float, str, str]:
-    """Run a command with deterministic cwd/env/timeout. Raises CalledProcessError on nonzero exit."""
-    t0 = time.perf_counter()
-    proc = subprocess.run(
-        cmd,
-        cwd=str(cwd),
-        env=env,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=timeout_s,
-        check=True,
-    )
-    return (time.perf_counter() - t0, proc.stdout, proc.stderr)
-
-
-def _ensure_file(f: Path) -> None:
-    if not f.exists() or not f.is_file():
-        raise FileNotFoundError(f"File not found: {f}")
-
-
-def _stage_file(src_path: Path, work_dir: Path) -> Path:
-    """Ensure src_path is present in work_dir; copy only if needed; return destination path."""
-    src = Path(src_path).resolve()
-    _ensure_file(src)
-    work_dir.mkdir(parents=True, exist_ok=True)
-    dest = work_dir / src.name
-
-    # If already exactly the same path, nothing to do.
-    try:
-        if src.resolve() == dest.resolve():
-            return dest
-    except Exception:
-        pass
-
-    if dest.exists():
-        try:
-            if filecmp.cmp(str(src), str(dest), shallow=False):
-                return dest
-        except Exception:
-            pass
-
-    shutil.copy2(str(src), str(dest))
-    return dest
-
-
-def _sha256_file(p: Path, chunk_size: int = 1024 * 1024) -> str:
-    h = hashlib.sha256()
-    with open(p, "rb") as fh:
-        for chunk in iter(lambda: fh.read(chunk_size), b""):
-            h.update(chunk)
-    return h.hexdigest()
-
-
-def _write_result_json(work_dir: Path, envelope: dict) -> Path:
-    """Write deterministic result.json (sorted keys + newline) into work_dir."""
-    work_dir.mkdir(parents=True, exist_ok=True)
-    out = work_dir / "result.json"
-    out.write_text(json.dumps(envelope, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    return out
 
 
 def run(
@@ -125,6 +70,10 @@ def run(
     normalize_z_center: bool = False,
     timeout_s: int = 600,
     work_dir: str | None = None,
+    forcefield_class: str | None = None,
+    use_f_flag: bool | None = None,
+    ignore: bool = False,
+    print_level: int | None = None,
 ) -> dict:
     """Run msi2lmp to produce a LAMMPS .data file.
 
@@ -228,17 +177,117 @@ def run(
     frc_dir.mkdir(parents=True, exist_ok=True)
     staged_frc = _stage_file(frc_abs, frc_dir)
 
-    cmd = [str(exe), base_stem, "-f", staged_frc.name]
+    # NOTE: observed usage variants for msi2lmp.exe in this repo:
+    # - legacy: `msi2lmp.exe <rootname> -f <forcefield_basename>`
+    # - modern: `msi2lmp.exe <rootname> -class I -frc <relative_path>`
+    # Some builds are sensitive to CVFF-style headers/labels.
+    # Default behavior: auto-detect based on `.frc` content.
+
+    cmd = _build_msi2lmp_argv(
+        exe=exe,
+        base_stem=base_stem,
+        wd=wd,
+        staged_frc=staged_frc,
+        forcefield_class=forcefield_class,
+        use_f_flag=use_f_flag,
+        ignore=bool(ignore),
+        print_level=print_level,
+    )
     env = _augment_env(str(exe))
 
     try:
         duration, stdout, stderr = _run(cmd, cwd=wd, env=env, timeout_s=timeout_s)
+    except subprocess.TimeoutExpired as e:
+        # Persist stdout/stderr deterministically even on timeout so workspaces have diagnostics.
+        # Note: TimeoutExpired uses .stdout/.stderr on py3.11+; fall back to .output.
+        def _to_text(x) -> str:
+            if x is None:
+                return ""
+            if isinstance(x, bytes):
+                return x.decode("utf-8", errors="replace")
+            return str(x)
+
+        stdout_raw = None
+        stderr_raw = None
+        try:
+            stdout_raw = e.stdout if getattr(e, "stdout", None) is not None else getattr(e, "output", None)
+        except Exception:
+            stdout_raw = None
+        try:
+            stderr_raw = getattr(e, "stderr", None)
+        except Exception:
+            stderr_raw = None
+
+        stdout_text = _to_text(stdout_raw)
+        stderr_text = _to_text(stderr_raw)
+
+        stdout_path.write_text(stdout_text, encoding="utf-8")
+        stderr_path.write_text(stderr_text, encoding="utf-8")
+
+        # Write deterministic result.json for parity with missing-tool and ok paths.
+        tool_version = get_tool_version(str(exe))
+        result = ExternalToolResult(
+            tool="msi2lmp",
+            argv=cmd,
+            cwd=str(wd),
+            duration_s=float(timeout_s),
+            stdout=stdout_text,
+            stderr=stderr_text,
+            outputs={
+                "stdout_file": str(stdout_path),
+                "stderr_file": str(stderr_path),
+            },
+            status="timeout",
+            outputs_sha256={
+                "stdout_file": _sha256_file(stdout_path),
+                "stderr_file": _sha256_file(stderr_path),
+            },
+            tool_version=tool_version,
+            warnings=[f"timeout after {int(timeout_s)}s"],
+        )
+        d = result.to_dict()
+        result_json = _write_result_json(wd, d)
+        d["outputs"]["result_json"] = str(result_json)
+        # Re-write so on-disk result.json matches the returned envelope (including result_json path)
+        result_json = _write_result_json(wd, d)
+        d["outputs"]["result_json"] = str(result_json)
+
+        raise RuntimeError(
+            f"msi2lmp timed out after {timeout_s}s\n(see {stdout_path} and {stderr_path})"
+        ) from e
     except subprocess.CalledProcessError as e:
         # Persist stdout/stderr deterministically even on failure so workspaces have diagnostics.
         stdout_text = e.stdout or ""
         stderr_text = e.stderr or ""
         stdout_path.write_text(stdout_text, encoding="utf-8")
         stderr_path.write_text(stderr_text, encoding="utf-8")
+
+        # Also persist result.json for deterministic manifests/debugging.
+        tool_version = get_tool_version(str(exe))
+        result = ExternalToolResult(
+            tool="msi2lmp",
+            argv=cmd,
+            cwd=str(wd),
+            duration_s=0.0,
+            stdout=stdout_text,
+            stderr=stderr_text,
+            outputs={
+                "stdout_file": str(stdout_path),
+                "stderr_file": str(stderr_path),
+            },
+            status="error",
+            outputs_sha256={
+                "stdout_file": _sha256_file(stdout_path),
+                "stderr_file": _sha256_file(stderr_path),
+            },
+            tool_version=tool_version,
+            warnings=[f"exit_code={e.returncode}"],
+        )
+        d = result.to_dict()
+        result_json = _write_result_json(wd, d)
+        d["outputs"]["result_json"] = str(result_json)
+        result_json = _write_result_json(wd, d)
+        d["outputs"]["result_json"] = str(result_json)
 
         # Provide a concise error message but point to the persisted logs for full context.
         msg = (stderr_text.strip() or stdout_text.strip() or str(e)).strip()
@@ -271,168 +320,6 @@ def run(
     # - Normalize Z header to [0,z_target] (use provided normalize_z_to or CAR PBC c if available).
     # - Uniformly shift atom Z so min(z)=0 (parity with legacy).
     try:
-        import re as _re
-
-        def _parse_abc_from_car(p: Path):
-            a = b = c = None
-            try:
-                with open(p, "r", encoding="utf-8", errors="ignore") as fh:
-                    for line in fh:
-                        s = line.strip()
-                        if s.upper().startswith("PBC") and "=" not in s.upper():
-                            nums = _re.findall(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?", s)
-                            if len(nums) >= 3:
-                                a = float(nums[0]); b = float(nums[1]); c = float(nums[2])
-                                break
-            except Exception:
-                pass
-            return a, b, c
-
-        def _normalize_data_file(
-            data_path: Path,
-            a_dim,
-            b_dim,
-            do_xy: bool,
-            z_target,
-            do_z_shift: bool,
-            do_z_center: bool,
-        ):
-            def _fmt(x: float) -> str:
-                return f"{x:.6f}"
-
-            # Read file
-            with open(data_path, "r", encoding="utf-8", errors="ignore") as fh:
-                lines = fh.read().splitlines()
-
-            # Find header bounds and indices
-            x_idx = y_idx = z_idx = None
-            atoms_header_idx = None
-            for i, line in enumerate(lines[:300]):
-                if _re.search(r"\bxlo\s+xhi\b", line):
-                    x_idx = i
-                elif _re.search(r"\bylo\s+yhi\b", line):
-                    y_idx = i
-                elif _re.search(r"\bzlo\s+zhi\b", line):
-                    z_idx = i
-                if atoms_header_idx is None and _re.match(r"^\s*Atoms\b", line):
-                    atoms_header_idx = i
-
-            # Update XY header extents
-            if do_xy:
-                if a_dim is not None and x_idx is not None:
-                    lines[x_idx] = f"0.000000 {_fmt(a_dim)} xlo xhi"
-                if b_dim is not None and y_idx is not None:
-                    lines[y_idx] = f"0.000000 {_fmt(b_dim)} ylo yhi"
-
-            # Identify Atoms section range
-            if atoms_header_idx is not None:
-                start = atoms_header_idx + 1
-                while start < len(lines) and (lines[start].strip() == "" or lines[start].lstrip().startswith("#")):
-                    start += 1
-                end = start
-                section_header_pat = _re.compile(r"^(Bonds|Angles|Dihedrals|Impropers|Velocities|Masses|Pair Coeffs|Bond Coeffs|Angle Coeffs|Dihedral Coeffs|Improper Coeffs)\b", _re.IGNORECASE)
-                while end < len(lines):
-                    s = lines[end].strip()
-                    if s != "" and section_header_pat.match(s):
-                        break
-                    end += 1
-
-                # Determine atom style (from header comment, e.g., 'Atoms # full')
-                style = "unknown"
-                m = _re.search(r"^\s*Atoms\s*(?:#\s*(\w+))?", lines[atoms_header_idx])
-                if m and m.group(1):
-                    style = m.group(1).strip().lower()
-
-                def _extract_xyz_tokens(parts: list[str]):
-                    try:
-                        if style == "full":
-                            x_i, y_i, z_i = 4, 5, 6
-                        elif style == "molecular":
-                            x_i, y_i, z_i = 3, 4, 5
-                        elif style == "atomic":
-                            x_i, y_i, z_i = 2, 3, 4
-                        else:
-                            # Fallback: last three numeric tokens
-                            z_i = y_i = x_i = None
-                            count = 0
-                            for idx in range(len(parts) - 1, -1, -1):
-                                tok = parts[idx]
-                                if _re.match(r"^[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?$", tok):
-                                    count += 1
-                                    if count == 1:
-                                        z_i = idx
-                                    elif count == 2:
-                                        y_i = idx
-                                    elif count == 3:
-                                        x_i = idx
-                                        break
-                            if x_i is None or y_i is None or z_i is None:
-                                return None, None, None, None
-                        return float(parts[x_i]), float(parts[y_i]), float(parts[z_i]), z_i
-                    except Exception:
-                        return None, None, None, None
-
-                # Pass 1: compute z_min and z_max
-                z_min = float("inf")
-                z_max = -float("inf")
-                for j in range(start, end):
-                    line = lines[j]
-                    left = line.split("#", 1)[0].strip()
-                    if not left:
-                        continue
-                    parts = left.split()
-                    _, _, z_val, _ = _extract_xyz_tokens(parts)
-                    if z_val is None:
-                        continue
-                    if z_val < z_min:
-                        z_min = z_val
-                    if z_val > z_max:
-                        z_max = z_val
-
-                # Pass 2 (optional): rewrite atoms lines with uniformly shifted z.
-                # Precedence: centering wins over legacy min(z)=0 shifting.
-                z_shift = None
-                if do_z_center:
-                    if z_target is not None and z_min != float("inf") and z_max != -float("inf"):
-                        z_mid = 0.5 * (z_min + z_max)
-                        z_shift = 0.5 * float(z_target) - z_mid
-                elif do_z_shift:
-                    if z_min != float("inf"):
-                        z_shift = -z_min
-
-                if z_shift is not None:
-                    for j in range(start, end):
-                        original = lines[j]
-                        head, sep, comment = original.partition("#")
-                        left = head.strip()
-                        if not left:
-                            continue
-                        parts = left.split()
-                        _, _, z_val, z_index = _extract_xyz_tokens(parts)
-                        if z_index is None or z_val is None:
-                            lines[j] = original.rstrip()
-                            continue
-                        parts[z_index] = _fmt(z_val + float(z_shift))
-                        new_left = " ".join(parts)
-                        # Ensure a space before '#' so image flags and comments don't merge
-                        lines[j] = (new_left + (" " + sep + comment if sep else "")).rstrip()
-
-                # Update Z header:
-                # - If z_target is provided, always normalize header to [0, z_target]
-                # - Else if we performed a legacy z-shift, normalize to [0, span]
-                # - Else leave header unchanged
-                if z_idx is not None and (z_target is not None or (do_z_shift and not do_z_center)):
-                    if z_target is None:
-                        zhi_val = (z_max - z_min) if (z_min != float("inf") and z_max != -float("inf")) else None
-                    else:
-                        zhi_val = float(z_target)
-                    if zhi_val is not None:
-                        lines[z_idx] = f"0.000000 {_fmt(zhi_val)} zlo zhi"
-
-            # Write back
-            with open(data_path, "w", encoding="utf-8") as outfh:
-                outfh.write("\n".join(lines) + "\n")
-
         a_dim, b_dim, c_dim = _parse_abc_from_car(staged_car)
         z_target = normalize_z_to if normalize_z_to is not None else c_dim
 

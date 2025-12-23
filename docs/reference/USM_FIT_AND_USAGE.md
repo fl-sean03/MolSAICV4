@@ -248,7 +248,7 @@ The convenience import surface is in [`src/usm/io/__init__.py`](src/usm/io/__ini
 
 ## 4) Operations: main categories and where they live
 
-USM operations are designed to be deterministic and schema-stable. The design doc enumerates the initial operation surface in [`src/usm/docs/DESIGN.md`](src/usm/docs/DESIGN.md:69), and the workflows doc provides practical playbooks in [`src/usm/docs/WORKFLOWS.md`](src/usm/docs/WORKFLOWS.md:1).
+USM operations are designed to be deterministic and schema-stable. The design doc enumerates the initial operation surface in [`src/usm/docs/DESIGN.md`](src/usm/docs/DESIGN.md:69), and the workflows doc provides practical playbooks in [`src/usm/docs/getting-started/WORKFLOWS.md`](src/usm/docs/getting-started/WORKFLOWS.md:1).
 
 Below are the key categories relevant to this repo.
 
@@ -264,7 +264,7 @@ Key semantics:
 - prefers MDF bonds if available
 - remaps bond endpoints to the new `aid` ordering after merge
 
-This pattern is explicitly recommended in [`src/usm/docs/WORKFLOWS.md`](src/usm/docs/WORKFLOWS.md:6).
+This pattern is explicitly recommended in [`src/usm/docs/getting-started/WORKFLOWS.md`](src/usm/docs/getting-started/WORKFLOWS.md:6).
 
 ### 4.2 Replicate (supercell tiling)
 
@@ -292,7 +292,7 @@ High-level mechanics:
 - collision screening uses minimum distances between host/guest atom sets
 - accepted guests are merged back into host; `mol_index` is made unique; `aid` is renumbered deterministically
 
-This operational playbook is captured in [`src/usm/docs/WORKFLOWS.md`](src/usm/docs/WORKFLOWS.md:20).
+This operational playbook is captured in [`src/usm/docs/getting-started/WORKFLOWS.md`](src/usm/docs/getting-started/WORKFLOWS.md:20).
 
 ### 4.4 Merge/renumber/selection/transforms (supporting ops)
 
@@ -301,7 +301,7 @@ These categories are referenced by the design and graft implementation as key su
 - merge and renumber: imported and used in [`src/usm/ops/graft.py`](src/usm/ops/graft.py:24)
 - selection by mask: imported and used in [`src/usm/ops/graft.py`](src/usm/ops/graft.py:27)
 
-The intent and grouping are documented in [`src/usm/docs/DESIGN.md`](src/usm/docs/DESIGN.md:69) and [`src/usm/docs/WORKFLOWS.md`](src/usm/docs/WORKFLOWS.md:73).
+The intent and grouping are documented in [`src/usm/docs/DESIGN.md`](src/usm/docs/DESIGN.md:69) and [`src/usm/docs/getting-started/WORKFLOWS.md`](src/usm/docs/getting-started/WORKFLOWS.md:73).
 
 ---
 
@@ -355,7 +355,7 @@ Main example workspace:
 
 ### 6.1 CAR+MDF composition (host or guest)
 
-The canonical pattern (also recommended in [`src/usm/docs/WORKFLOWS.md`](src/usm/docs/WORKFLOWS.md:20)):
+The canonical pattern (also recommended in [`src/usm/docs/getting-started/WORKFLOWS.md`](src/usm/docs/getting-started/WORKFLOWS.md:20)):
 
 - Load coordinates: [`load_car()`](src/usm/io/car.py:128)
 - Load topology: [`load_mdf()`](src/usm/io/mdf.py:243)
@@ -363,7 +363,7 @@ The canonical pattern (also recommended in [`src/usm/docs/WORKFLOWS.md`](src/usm
 
 ### 6.2 Grafting workflow (USM-first edits)
 
-The operational sequence described in [`src/usm/docs/WORKFLOWS.md`](src/usm/docs/WORKFLOWS.md:20) and implemented in [`graft_guests()`](src/usm/ops/graft.py:171):
+The operational sequence described in [`src/usm/docs/getting-started/WORKFLOWS.md`](src/usm/docs/getting-started/WORKFLOWS.md:20) and implemented in [`graft_guests()`](src/usm/ops/graft.py:171):
 
 - compose host
 - detect sites (site model is referenced as [`Site`](src/usm/ops/graft.py:39))
@@ -427,7 +427,7 @@ See [`workspaces/02_usm_upm_msi2lmp_pipeline/run.py`](workspaces/02_usm_upm_msi2
 
 ### Docs (upstream intent)
 - Design: [`src/usm/docs/DESIGN.md`](src/usm/docs/DESIGN.md:1)
-- Workflow playbooks: [`src/usm/docs/WORKFLOWS.md`](src/usm/docs/WORKFLOWS.md:1)
+- Workflow playbooks: [`src/usm/docs/getting-started/WORKFLOWS.md`](src/usm/docs/getting-started/WORKFLOWS.md:1)
 
 ### Workspace examples
 - Golden pipeline: [`workspaces/02_usm_upm_msi2lmp_pipeline/run.py`](workspaces/02_usm_upm_msi2lmp_pipeline/run.py:1)

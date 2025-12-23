@@ -22,7 +22,7 @@ The template directory contains:
 - assets/AluminaSurfaces/templates/CL.{car,mdf} (one-atom ion template)
 - assets/AluminaSurfaces/packmol/packmol_AS{2,5,10,12}.inp (canonical water-box geometry and water count)
 - assets/AluminaSurfaces/prm_files/parameters.prm (CHARMM-style)
-- assets/AluminaSurfaces/frc_files/cvff_IFF_metal_oxides_v2.frc (LAMMPS IFF)
+- assets/AluminaSurfaces/frc_files/*.frc (forcefield inputs; not a committed dependency for CALF-20 “from scratch” flows)
 
 ## Workflow overview
 

@@ -8,8 +8,8 @@ This repository mixes:
 This document explains what MOLSAIC currently provides, what it explicitly does **not** provide, and how current workspaces do (or do not) use it.
 
 Related docs:
-- Code-first workflow conventions and workspace contract: [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md:1)
-- Primary manifest JSON schema (summary.json contract): [`docs/manifest.v1.schema.json`](docs/manifest.v1.schema.json:1)
+- Code-first workflow conventions and workspace contract: [`docs/getting-started/WORKFLOWS.md`](docs/getting-started/WORKFLOWS.md:1)
+- Primary manifest JSON schema (summary.json contract): [`docs/reference/manifest.v1.schema.json`](docs/reference/manifest.v1.schema.json:1)
 
 ---
 
@@ -152,7 +152,7 @@ MOLSAIC defines a workspace as a directory under `workspaces/**` meeting the con
   - hidden directories (`.foo`)
   - directories named `_template`
 
-This aligns with the “code-first” pattern described in [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md:1).
+This aligns with the “code-first” pattern described in [`docs/getting-started/WORKFLOWS.md`](docs/getting-started/WORKFLOWS.md:1).
 
 ### Important implication: basename uniqueness
 MOLSAIC’s lookup is by **basename** (directory name), not by full relative path. It builds an index `basename -> Path` and raises if the same basename appears twice under `workspaces/**`:
@@ -167,7 +167,7 @@ This is a deliberate constraint to keep `--workspace-name foo_v1` deterministic.
 
 ### Primary manifest contract: `outputs/summary.json` (manifest v1)
 The primary durable manifest contract in this repository is the **workspace summary** shape described by:
-- [`docs/manifest.v1.schema.json`](docs/manifest.v1.schema.json:1)
+- [`docs/reference/manifest.v1.schema.json`](docs/reference/manifest.v1.schema.json:1)
 
 Key required top-level fields include:
 - `started_at`, `finished_at` (ISO timestamps)
@@ -176,7 +176,7 @@ Key required top-level fields include:
 - `counts`
 - `cell` (requires at least `c`)
 
-This schema corresponds to what code-first workspaces write as `outputs/summary.json` (see workflow doc description of summary.json as a contract in [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md:129)).
+This schema corresponds to what code-first workspaces write as `outputs/summary.json` (see workflow doc description of summary.json as a contract in [`docs/getting-started/WORKFLOWS.md`](docs/getting-started/WORKFLOWS.md:129)).
 
 ### Legacy/variant: deterministic `run_manifest.json` labeled `molsaic.run_manifest.v0.1.1`
 A separate “manifest-ish” artifact exists in the golden pipeline workspace:
@@ -187,7 +187,7 @@ A separate “manifest-ish” artifact exists in the golden pipeline workspace:
 That legacy label is validated by:
 - [`test_golden_usm_upm_msi2lmp_pipeline.py`](tests/integration/test_golden_usm_upm_msi2lmp_pipeline.py:40)
 
-This artifact is *not* currently governed by [`docs/manifest.v1.schema.json`](docs/manifest.v1.schema.json:1); it is best described as a “deterministic run manifest” used by a particular workspace/test harness.
+This artifact is *not* currently governed by [`docs/reference/manifest.v1.schema.json`](docs/reference/manifest.v1.schema.json:1); it is best described as a “deterministic run manifest” used by a particular workspace/test harness.
 
 ---
 
@@ -236,7 +236,7 @@ But it executes the workflow directly via wrappers and reusable libs, e.g.:
 - composition:
   - [`pm2mdfcar.build()`](workspaces/alumina/alumina_AS2_hydration_v1/run.py:300)
 
-It writes `outputs/summary.json` itself (shape intended to comply with [`docs/manifest.v1.schema.json`](docs/manifest.v1.schema.json:1)).
+It writes `outputs/summary.json` itself (shape intended to comply with [`docs/reference/manifest.v1.schema.json`](docs/reference/manifest.v1.schema.json:1)).
 
 This is the common pattern today: workspaces are the orchestration layer; MOLSAIC is a helper library rather than the driver.
 
@@ -252,7 +252,7 @@ Wrappers in [`src/external/`](src/external:1) encapsulate:
 - output existence/non-empty validation
 - timeouts and “missing tool” outcomes
 
-MOLSAIC does not call these wrappers directly; workspaces do (see [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md:1) for wrapper behavior summaries and references).
+MOLSAIC does not call these wrappers directly; workspaces do (see [`docs/getting-started/WORKFLOWS.md`](docs/getting-started/WORKFLOWS.md:1) for wrapper behavior summaries and references).
 
 ### USM/UPM
 USM and UPM provide:
@@ -287,10 +287,10 @@ flowchart LR
 
 ## 8) Practical guidance (if you’re authoring a new workspace)
 
-- Follow the workspace layout contract described in [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md:1).
+- Follow the workspace layout contract described in [`docs/getting-started/WORKFLOWS.md`](docs/getting-started/WORKFLOWS.md:1).
 - Use [`find_repo_root()`](src/molsaic/workspaces.py:21) rather than fixed-depth assumptions.
 - When writing a summary/manifest artifact:
   - Prefer [`write_json_stable()`](src/molsaic/manifest_utils.py:27)
   - Use [`relpath_posix()`](src/molsaic/manifest_utils.py:35) to keep paths relative to the workspace outputs directory when determinism matters
   - Hash key inputs/outputs using [`sha256_file()`](src/molsaic/manifest_utils.py:12) or [`hash_paths()`](src/molsaic/manifest_utils.py:55)
-- Keep `outputs/summary.json` compatible with [`docs/manifest.v1.schema.json`](docs/manifest.v1.schema.json:1) where possible so downstream automation can depend on the contract.
+- Keep `outputs/summary.json` compatible with [`docs/reference/manifest.v1.schema.json`](docs/reference/manifest.v1.schema.json:1) where possible so downstream automation can depend on the contract.

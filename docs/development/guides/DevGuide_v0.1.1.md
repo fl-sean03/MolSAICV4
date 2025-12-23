@@ -354,7 +354,7 @@ Inputs (choose one consistent source):
   - `workspaces/mxenes/analysis/mxn_counts_v1/inputs/MXN.mdf`
 
 - Example force-field input already in this repo:
-  - `src/upm/assets/cvff_IFF_metal_oxides_v2.frc`
+  - `workspaces/02_usm_upm_msi2lmp_pipeline/inputs/mxn_demo_minimal.frc`
 
 Outputs:
 - `run_manifest.json` written under the workspace outputs directory includes:

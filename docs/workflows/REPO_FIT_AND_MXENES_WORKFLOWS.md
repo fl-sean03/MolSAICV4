@@ -7,7 +7,7 @@ This repo is organized into three layers that intentionally separate:
 
 This document ties together:
 - USM: [`docs/USM_FIT_AND_USAGE.md`](docs/USM_FIT_AND_USAGE.md:1)
-- MOLSAIC: [`docs/MOLSAIC_FIT_AND_USAGE.md`](docs/MOLSAIC_FIT_AND_USAGE.md:1)
+- MOLSAIC: [`docs/reference/MOLSAIC_FIT_AND_USAGE.md`](docs/reference/MOLSAIC_FIT_AND_USAGE.md:1)
 - the MXenes fluorinated scaffold: [`workspaces/mxenes/fluorinated/mxn_f_sub_v3/WORKFLOW_NOTES.md`](workspaces/mxenes/fluorinated/mxn_f_sub_v3/WORKFLOW_NOTES.md:1)
 - the working pH hydrated bilayer workflow: [`workspaces/mxenes/pH_systems/pH_all_hydrated_bilayer_v1/README.md`](workspaces/mxenes/pH_systems/pH_all_hydrated_bilayer_v1/README.md:1) and [`workspaces/mxenes/pH_systems/pH_all_hydrated_bilayer_v1/run.py`](workspaces/mxenes/pH_systems/pH_all_hydrated_bilayer_v1/run.py:1)
 
@@ -49,7 +49,7 @@ Workspaces live under [`workspaces/`](workspaces:1) and are “code-first runner
 - each workspace defines its orchestration logic in a local runner like [`run.py`](workspaces/mxenes/pH_systems/pH_all_hydrated_bilayer_v1/run.py:1),
 - typically parameterized by a local config like [`config.json`](workspaces/mxenes/pH_systems/pH_all_hydrated_bilayer_v1/config.json:1),
 - produces structured outputs under `outputs/...`,
-- writes a machine-readable `summary.json` manifest intended to align with [`docs/manifest.v1.schema.json`](docs/manifest.v1.schema.json:1) (and described by the workspace contract in [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md:1)).
+- writes a machine-readable `summary.json` manifest intended to align with [`docs/reference/manifest.v1.schema.json`](docs/reference/manifest.v1.schema.json:1) (and described by the workspace contract in [`docs/getting-started/WORKFLOWS.md`](docs/getting-started/WORKFLOWS.md:1)).
 
 ### Text diagram (how the pieces connect)
 
@@ -126,7 +126,7 @@ Key entry points:
 - CLI-friendly workspace selection: [`resolve_workspace_dir()`](src/molsaic/workspaces.py:148)
 - stable JSON emit: [`write_json_stable()`](src/molsaic/manifest_utils.py:27)
 
-MOLSAIC **does not** define pipeline semantics. The orchestration logic remains in each workspace runner (per the contract described in [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md:1)).
+MOLSAIC **does not** define pipeline semantics. The orchestration logic remains in each workspace runner (per the contract described in [`docs/getting-started/WORKFLOWS.md`](docs/getting-started/WORKFLOWS.md:1)).
 
 ---
 
@@ -149,7 +149,7 @@ Each wrapper writes tool outputs to stable locations in the run directory (e.g.,
 ## 5) Workspace pattern: how workflows are implemented here
 
 The repository’s workspace contract is described in:
-- [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md:1)
+- [`docs/getting-started/WORKFLOWS.md`](docs/getting-started/WORKFLOWS.md:1)
 
 Workspaces generally implement:
 - a `main()` that resolves config + args and enumerates a parameter matrix,
@@ -157,7 +157,7 @@ Workspaces generally implement:
   - stages inputs (or expects them staged),
   - runs wrapper steps sequentially,
   - validates produced artifacts,
-  - writes `outputs/.../summary.json` (schema: [`docs/manifest.v1.schema.json`](docs/manifest.v1.schema.json:1)).
+  - writes `outputs/.../summary.json` (schema: [`docs/reference/manifest.v1.schema.json`](docs/reference/manifest.v1.schema.json:1)).
 
 The pH hydrated bilayer workspace follows this shape directly in [`main()`](workspaces/mxenes/pH_systems/pH_all_hydrated_bilayer_v1/run.py:805) and [`run_one()`](workspaces/mxenes/pH_systems/pH_all_hydrated_bilayer_v1/run.py:490).
 
@@ -186,7 +186,7 @@ Within [`workspaces/mxenes/`](workspaces/mxenes:1) you can see several “famili
 
 ### What was done
 - We created a durable “what this would look like if implemented” note based on:
-  - the workspace contract in [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md:1),
+  - the workspace contract in [`docs/getting-started/WORKFLOWS.md`](docs/getting-started/WORKFLOWS.md:1),
   - wrapper conventions,
   - fluorinated lineage runners (e.g., [`run_pipeline()`](workspaces/mxenes/fluorinated/mxene_bilayer_water_f50_v1/run.py:127)).
 
@@ -296,20 +296,20 @@ Problem/fix summarized in the workspace README:
 
 ### Documentation changes (durable narrative and inventory)
 - USM fit/use: [`docs/USM_FIT_AND_USAGE.md`](docs/USM_FIT_AND_USAGE.md:1)
-- MOLSAIC fit/use: [`docs/MOLSAIC_FIT_AND_USAGE.md`](docs/MOLSAIC_FIT_AND_USAGE.md:1)
+- MOLSAIC fit/use: [`docs/reference/MOLSAIC_FIT_AND_USAGE.md`](docs/reference/MOLSAIC_FIT_AND_USAGE.md:1)
 - `mxn_f_sub_v3` inventory notes: [`workspaces/mxenes/fluorinated/mxn_f_sub_v3/WORKFLOW_NOTES.md`](workspaces/mxenes/fluorinated/mxn_f_sub_v3/WORKFLOW_NOTES.md:1)
 
 ---
 
 ## 10) Cross-links / “where to look next”
 
-- Start with the workspace contract: [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md:1)
+- Start with the workspace contract: [`docs/getting-started/WORKFLOWS.md`](docs/getting-started/WORKFLOWS.md:1)
 - Read the USM fit/use and dive into I/O + ops:
   - [`docs/USM_FIT_AND_USAGE.md`](docs/USM_FIT_AND_USAGE.md:1)
   - the core model: [`USM`](src/usm/core/model.py:95)
   - composition/join primitive: [`compose_on_keys()`](src/usm/ops/compose.py:13)
 - Read MOLSAIC fit/use and explore manifest helpers:
-  - [`docs/MOLSAIC_FIT_AND_USAGE.md`](docs/MOLSAIC_FIT_AND_USAGE.md:1)
+  - [`docs/reference/MOLSAIC_FIT_AND_USAGE.md`](docs/reference/MOLSAIC_FIT_AND_USAGE.md:1)
   - stable JSON writer: [`write_json_stable()`](src/molsaic/manifest_utils.py:27)
 - Explore wrapper implementations:
   - MXene hydration uses [`msi2namd.run()`](src/external/msi2namd.py:96), [`packmol.run()`](src/external/packmol.py:46), [`msi2lmp.run()`](src/external/msi2lmp.py:68)

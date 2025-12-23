@@ -45,6 +45,10 @@ def test_replicate_monoclinic_counts_cell_and_bonds():
     assert len(sup.atoms) == n_base_atoms * n_images
     assert len(sup.bonds) == n_base_bonds * n_images
 
+    # Atom names must be unique across replicated tiles
+    names = sup.atoms["name"].astype(str)
+    assert names.nunique() == len(names)
+
     # Cell scaling and angles preserved
     _assert_cell_scaled_and_angles_same(base.cell, sup.cell, na, nb, nc)
 

@@ -8,6 +8,8 @@ from typing import Dict, Optional
 
 import pytest
 
+from tests._manifest_schema_lite import validate_manifest_v1_schema_lite  # noqa: E402
+
 # Ensure repo root import
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = REPO_ROOT / "src"
@@ -23,7 +25,59 @@ WORKSPACES = [
 
 
 def _workspace_dir(name: str) -> Path:
-    return REPO_ROOT / "workspaces" / name
+    """Resolve workspace directory.
+
+    Repo layout supports grouping (e.g. `workspaces/alumina/<workspace_name>`).
+    Tests should remain robust to that structure.
+    """
+
+    direct = REPO_ROOT / "workspaces" / name
+    if direct.is_dir():
+        return direct
+
+    grouped = REPO_ROOT / "workspaces" / "alumina" / name
+    if grouped.is_dir():
+        return grouped
+
+    # Last resort: deterministic search under workspaces/*/<name>
+    matches = sorted((REPO_ROOT / "workspaces").glob(f"*/{name}"))
+    for m in matches:
+        if m.is_dir():
+            return m
+    return direct
+
+
+def _resolve_reported_output_path(ws_outputs: Path, reported: str, *, key: str) -> Path:
+    """Resolve `summary['outputs'][key]` into a real path in this repo.
+
+    Some committed `summary.json` artifacts were generated in other checkouts and
+    include absolute paths. For deterministic tests, we allow remapping those
+    paths into the *current* workspace outputs directory.
+    """
+
+    p = Path(str(reported))
+    if p.exists():
+        return p
+
+    # If the reported path includes an "outputs" segment, rebase the suffix.
+    if p.is_absolute():
+        parts = list(p.parts)
+        try:
+            idx = max(i for i, part in enumerate(parts) if part == "outputs")
+        except ValueError:
+            idx = -1
+        if idx >= 0 and idx + 1 < len(parts):
+            rebased = ws_outputs / Path(*parts[idx + 1 :])
+            if rebased.exists():
+                return rebased
+
+    # Key-based fallback (covers common layout: outputs/converted, outputs/simulation).
+    name = p.name
+    if key in {"car_file", "mdf_file"}:
+        return ws_outputs / "converted" / name
+    if key == "lmp_data_file":
+        return ws_outputs / "simulation" / name
+    return ws_outputs / name
 
 
 def _workspace_files(name: str) -> Dict[str, Path]:
@@ -82,7 +136,8 @@ def _validate_manifest(summary: dict, schema_path: Path) -> None:
     try:
         import jsonschema  # type: ignore
     except Exception:
-        pytest.skip("jsonschema not installed; skipping manifest validation")
+        # Keep test deterministic without third-party deps.
+        validate_manifest_v1_schema_lite(summary)
         return
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
     jsonschema.validate(instance=summary, schema=schema)
@@ -94,10 +149,11 @@ def _assert_summary_invariants(name: str, cfg: dict, summary: dict) -> None:
 
     # Verify output files exist and are non-empty
     outputs = summary["outputs"]
+    ws_outputs = _workspace_files(name)["outputs"]
     for k in ["car_file", "mdf_file", "lmp_data_file", "packed_structure"]:
-        p = Path(outputs[k])
-        assert p.exists(), f"[{name}] missing output: {k} -> {p}"
-        assert p.stat().st_size > 0, f"[{name}] empty output: {k} -> {p}"
+        p = _resolve_reported_output_path(ws_outputs, str(outputs[k]), key=k)
+        assert p.exists(), f"[{name}] missing output: {k} -> {p} (reported: {outputs[k]!r})"
+        assert p.stat().st_size > 0, f"[{name}] empty output: {k} -> {p} (reported: {outputs[k]!r})"
 
     # Cell.c must equal config target_c when present
     target_c = _load_config_target_c(cfg)

@@ -28,6 +28,7 @@ import re
 import shlex
 import shutil
 import subprocess
+import tempfile
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -133,6 +134,11 @@ def get_tool_version(exe_path: str, timeout_s: int = 5) -> str:
       4) Return "unknown" if all attempts fail or parse yields nothing
 
     This function never raises; it is safe to call in summaries.
+
+    NOTE: Probes are run in a temporary directory to prevent legacy tools
+    (like msi2lmp) from creating spurious output files in the current
+    working directory. Some tools interpret version flags as base names
+    for output files (e.g., msi2lmp creates --version.data).
     """
     try:
         exe = Path(exe_path).resolve()
@@ -150,14 +156,40 @@ def get_tool_version(exe_path: str, timeout_s: int = 5) -> str:
     ]
 
     env = augment_env_with_exe_dir(str(exe))
-    for argv in attempts:
+
+    # Run probes in a temporary directory to avoid polluting the caller's cwd
+    # with spurious output files from legacy tools (e.g., msi2lmp creates .data files)
+    with tempfile.TemporaryDirectory(prefix="molsaic_version_probe_") as tmpdir:
+        for argv in attempts:
+            try:
+                proc = subprocess.run(
+                    argv,
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout_s,
+                    env=env,
+                    cwd=tmpdir,  # Run in temp dir to contain any spurious files
+                    check=False,
+                )
+                text = (proc.stdout or "") + "\n" + (proc.stderr or "")
+                ver = _parse_version_from_text(text)
+                if ver:
+                    return ver
+            except Exception:
+                # Ignore and continue attempts
+                continue
+
+        # As a final fallback, try invoking via shell if the path includes spaces (rare on Linux)
         try:
+            cmd = f"{shlex.quote(str(exe))} --version"
             proc = subprocess.run(
-                argv,
+                cmd,
+                shell=True,
                 capture_output=True,
                 text=True,
                 timeout=timeout_s,
                 env=env,
+                cwd=tmpdir,  # Run in temp dir to contain any spurious files
                 check=False,
             )
             text = (proc.stdout or "") + "\n" + (proc.stderr or "")
@@ -165,27 +197,7 @@ def get_tool_version(exe_path: str, timeout_s: int = 5) -> str:
             if ver:
                 return ver
         except Exception:
-            # Ignore and continue attempts
-            continue
-
-    # As a final fallback, try invoking via shell if the path includes spaces (rare on Linux)
-    try:
-        cmd = f"{shlex.quote(str(exe))} --version"
-        proc = subprocess.run(
-            cmd,
-            shell=True,
-            capture_output=True,
-            text=True,
-            timeout=timeout_s,
-            env=env,
-            check=False,
-        )
-        text = (proc.stdout or "") + "\n" + (proc.stderr or "")
-        ver = _parse_version_from_text(text)
-        if ver:
-            return ver
-    except Exception:
-        pass
+            pass
 
     return "unknown"
 

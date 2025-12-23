@@ -99,7 +99,7 @@ coverage.xml
 nosetests.xml
 junit.xml
 test-results/
-reports/
+/reports/
 logs/
 *.out
 
@@ -199,15 +199,15 @@ outputs/
 ._*
 .Spotlight-V100
 
-# === MolSAIC: local generated artifacts (do not commit) ===
+# === MolSAIC: spurious msi2lmp version probe artifacts ===
+# These are created when msi2lmp interprets version flags as base names.
+# The root cause is fixed in adapter.py (probes run in temp dir), but
+# keep these ignored as a safety net.
 /--version.data
 /-h.data
 /-v.data
 /-version.data
 /u.data
-/stdout.txt
-/stderr.txtnRC=0necho
-/rc.txtnls
 .fseventsd
 
 # === Local config ===

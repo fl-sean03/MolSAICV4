@@ -1,0 +1,62 @@
+#atom_types
+  cx1  C  12.011  MXN carbon type cx1 (demo)
+  cx2  C  12.011  MXN carbon type cx2 (demo)
+  cx3  C  12.011  MXN carbon type cx3 (demo)
+  cx4  C  12.011  MXN carbon type cx4 (demo)
+  hoy  H  1.008   MXN hydrogen term (demo)
+  omx  O  15.999  MXN oxygen term (demo)
+  ti1  Ti 47.867  MXN titanium type ti1 (demo)
+  ti2  Ti 47.867  MXN titanium type ti2 (demo)
+
+#quadratic_bond
+  cx1  ti1  200.0  2.05
+  cx1  ti2  200.0  2.05
+  cx2  ti1  200.0  2.05
+  cx2  ti2  200.0  2.05
+  cx3  ti1  200.0  2.05
+  cx3  ti2  200.0  2.05
+  cx4  ti1  200.0  2.05
+  cx4  ti2  200.0  2.05
+  hoy  omx  450.0  0.98
+
+#quadratic_angle mxn_demo
+  cx1  ti1  cx1  120.0  50.0
+  cx1  ti1  cx2  120.0  50.0
+  cx1  ti1  cx3  120.0  50.0
+  cx1  ti1  cx4  120.0  50.0
+  cx1  ti2  cx2  120.0  50.0
+  cx1  ti2  cx3  120.0  50.0
+  cx1  ti2  cx4  120.0  50.0
+  cx2  ti1  cx2  120.0  50.0
+  cx2  ti1  cx3  120.0  50.0
+  cx2  ti1  cx4  120.0  50.0
+  cx2  ti2  cx3  120.0  50.0
+  cx2  ti2  cx4  120.0  50.0
+  cx3  ti1  cx3  120.0  50.0
+  cx3  ti1  cx4  120.0  50.0
+  cx3  ti2  cx4  120.0  50.0
+  cx4  ti1  cx4  120.0  50.0
+  ti1  cx1  ti1  120.0  50.0
+  ti1  cx1  ti2  120.0  50.0
+  ti1  cx2  ti1  120.0  50.0
+  ti1  cx2  ti2  120.0  50.0
+  ti1  cx3  ti1  120.0  50.0
+  ti1  cx3  ti2  120.0  50.0
+  ti1  cx4  ti1  120.0  50.0
+  ti1  cx4  ti2  120.0  50.0
+  ti2  cx1  ti2  120.0  50.0
+  ti2  cx2  ti2  120.0  50.0
+  ti2  cx3  ti2  120.0  50.0
+  ti2  cx4  ti2  120.0  50.0
+
+#nonbond(12-6)
+  @type A-B
+  @combination geometric
+  cx1  1.00  2.00
+  cx2  1.10  2.10
+  cx3  1.20  2.20
+  cx4  1.30  2.30
+  hoy  0.10  0.20
+  omx  2.00  4.00
+  ti1  5.00  10.00
+  ti2  5.50  11.00

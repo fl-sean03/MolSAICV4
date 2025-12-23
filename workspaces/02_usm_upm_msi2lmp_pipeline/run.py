@@ -38,10 +38,19 @@ def _bootstrap_repo_src_on_path(start_dir: Path) -> Path:
         if (cand / "pyproject.toml").is_file():
             src_root = cand / "src"
             upm_src_root = cand / "src" / "upm" / "src"
-            if str(src_root) not in sys.path:
-                sys.path.insert(0, str(src_root))
-            if upm_src_root.is_dir() and str(upm_src_root) not in sys.path:
-                sys.path.insert(0, str(upm_src_root))
+
+            # IMPORTANT: always prefer repo-local sources over any installed packages.
+            # Mirror the precedence behavior used by newer workspaces.
+            src_root_s = str(src_root)
+            if src_root_s in sys.path:
+                sys.path.remove(src_root_s)
+            sys.path.insert(0, src_root_s)
+
+            if upm_src_root.is_dir():
+                upm_src_root_s = str(upm_src_root)
+                if upm_src_root_s in sys.path:
+                    sys.path.remove(upm_src_root_s)
+                sys.path.insert(0, upm_src_root_s)
             return cand
     raise RuntimeError(f"Could not locate repo root (pyproject.toml) starting from: {start_dir}")
 

@@ -1,0 +1,5 @@
+ WARNING- forcefield name and class appear to be inconsistent
+
+ Unable to find keyword '#atom_types'
+ Check consistency of forcefield name and class 
+ Exiting....

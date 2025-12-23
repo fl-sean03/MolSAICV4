@@ -1,0 +1,8 @@
+
+Running msi2lmp v3.9.6 / 11 Sep 2014
+
+ Forcefield: Class I
+ Forcefield file name: ../frc_files/ff_minimal.frc
+ Output is recentered around geometrical center
+ Output contains style flag hints
+ System translated by: 0 0 0

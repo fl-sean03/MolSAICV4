@@ -1,0 +1,22 @@
+{
+  "argv": [
+    "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/02_usm_upm_msi2lmp_pipeline/msi2lmp"
+  ],
+  "cwd": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/02_usm_upm_msi2lmp_pipeline/outputs/msi2lmp_run",
+  "duration_s": 0.0,
+  "outputs": {
+    "result_json": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/02_usm_upm_msi2lmp_pipeline/outputs/msi2lmp_run/result.json",
+    "stderr_file": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/02_usm_upm_msi2lmp_pipeline/outputs/msi2lmp_run/stderr.txt",
+    "stdout_file": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/02_usm_upm_msi2lmp_pipeline/outputs/msi2lmp_run/stdout.txt"
+  },
+  "outputs_sha256": {
+    "stderr_file": "a9cc1633fd9a3e3c04ae0b4ce5878e50bd815c3dd3c3a27fee959e2a048473de",
+    "stdout_file": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "status": "missing_tool",
+  "stderr": "Executable not found: /home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/02_usm_upm_msi2lmp_pipeline/msi2lmp",
+  "stdout": "",
+  "tool": "msi2lmp",
+  "tool_version": "unknown",
+  "warnings": []
+}

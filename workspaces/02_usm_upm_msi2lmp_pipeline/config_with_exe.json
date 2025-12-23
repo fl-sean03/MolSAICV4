@@ -1,0 +1,17 @@
+{
+  "outputs_dir": "./outputs",
+  "inputs": {
+    "car": "./inputs/MXN.car",
+    "mdf": "./inputs/MXN.mdf",
+    "source_frc": "./inputs/mxn_demo_minimal.frc"
+  },
+  "executables": {
+    "msi2lmp": "/home/sf2/LabWork/software/msi2lmp.exe"
+  },
+  "params": {
+    "normalize_xy": true,
+    "normalize_z_to": null,
+    "upm_include_raw": false,
+    "upm_allow_missing": false
+  }
+}

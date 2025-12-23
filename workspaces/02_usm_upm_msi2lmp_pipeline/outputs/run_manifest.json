@@ -1,0 +1,41 @@
+{
+  "external": {
+    "result_json_path": "msi2lmp_run/result.json",
+    "status": "missing_tool",
+    "tool": "msi2lmp",
+    "tool_version": "unknown"
+  },
+  "inputs": {
+    "car": {
+      "path": "inputs/MXN.car",
+      "sha256": "39cf99a14539800c2b002e057cb363265d844b6a171dab1784aecfc55ffa78e3"
+    },
+    "mdf": {
+      "path": "inputs/MXN.mdf",
+      "sha256": "4f6038604f8714997ac7dc1cc44a4dd9549a13b71d82e9e6f9f30f2c606df2b8"
+    },
+    "source_frc": {
+      "path": "inputs/source.frc",
+      "sha256": "e6ce6427711cd8f2e69b4edab07bfb0270ae488ff9724cad4fbc7d1a5484c963"
+    }
+  },
+  "outputs": {
+    "ff_minimal": {
+      "path": "ff_minimal.frc",
+      "sha256": "eb916e2f8c72d97b50d616cf2e82d033abe93c3bc21dc00ef84220dbe15b964a"
+    },
+    "requirements": {
+      "path": "requirements.json",
+      "sha256": "d85eb6a3bd9886681c8a00a54f369965b245e2055fa7fb1db5f59423ef9f0379"
+    }
+  },
+  "schema": "molsaic.run_manifest.v0.1.1",
+  "tool_versions": {
+    "molsaic": "0.0.1",
+    "msi2lmp": "unknown",
+    "python": "3.13.5",
+    "upm": "0.1.0",
+    "usm": "unknown"
+  },
+  "workspace": "02_usm_upm_msi2lmp_pipeline"
+}

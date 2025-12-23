@@ -1,0 +1,2 @@
+ Error  - forcefield name and class appear to be inconsistent
+

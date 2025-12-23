@@ -1,0 +1,71 @@
+{
+  "created_utc": "2025-12-19T03:35:06Z",
+  "features": [],
+  "name": "cvff_IFF_metal_oxides_v2",
+  "nonbonded": {
+    "form": "12-6",
+    "mixing": "geometric",
+    "style": "A-B"
+  },
+  "schema_version": "upm-1.0",
+  "sources": [
+    {
+      "path": "raw/source.frc",
+      "sha256": "e6ce6427711cd8f2e69b4edab07bfb0270ae488ff9724cad4fbc7d1a5484c963"
+    },
+    {
+      "path": "raw/unknown_sections.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    }
+  ],
+  "tables": {
+    "angles": {
+      "dtypes": {
+        "k": "Float64",
+        "source": "string",
+        "style": "string",
+        "t1": "string",
+        "t2": "string",
+        "t3": "string",
+        "theta0_deg": "Float64"
+      },
+      "path": "tables/angles.csv",
+      "rows": 28,
+      "sha256": "cb37e36bb6f5609700da239f115cff6502f7663a0725e0c638934804b4d7574c"
+    },
+    "atom_types": {
+      "dtypes": {
+        "atom_type": "string",
+        "element": "string",
+        "lj_a": "Float64",
+        "lj_b": "Float64",
+        "mass_amu": "Float32",
+        "notes": "string",
+        "vdw_style": "string"
+      },
+      "path": "tables/atom_types.csv",
+      "rows": 8,
+      "sha256": "3f3f49f2810cc9d1962dacaf6acdbc08ef87a71339cb18ea94707243bc05a9d5"
+    },
+    "bonds": {
+      "dtypes": {
+        "k": "Float64",
+        "r0": "Float64",
+        "source": "string",
+        "style": "string",
+        "t1": "string",
+        "t2": "string"
+      },
+      "path": "tables/bonds.csv",
+      "rows": 9,
+      "sha256": "3c10a0f37ced915c03dd557616c52cd49c31e8d7fcdd0f73fe9b707dd5b34149"
+    }
+  },
+  "units": {
+    "angle": "degree",
+    "energy": "kcal/mol",
+    "length": "angstrom",
+    "mass": "amu"
+  },
+  "version": "v0"
+}

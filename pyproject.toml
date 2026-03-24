@@ -4,13 +4,19 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "molsaic"
-version = "0.0.1"
-description = "MolSAIC V4 deterministic orchestrator pipelines and adapters."
-requires-python = ">=3.9"
+version = "2.0.0"
+description = "MolSAIC V4 — deterministic orchestrator for atomistic structure pipelines"
+requires-python = ">=3.10"
 authors = [{ name = "MolSAIC Authors" }]
 dependencies = [
-  "numpy>=1.22",
-  "pandas>=1.5",
+  "numpy>=1.24",
+  "pandas>=2.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.4",
+  "ruff>=0.3",
 ]
 
 [project.urls]
@@ -22,14 +28,17 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["*"]
-# UPM is a standalone package (submodule) and is installed separately via:
-#   python -m pip install -e ./src/upm
-exclude = ["upm", "upm.*"]
+include = ["molsaic", "molsaic.*", "external", "external.*", "pm2mdfcar", "pm2mdfcar.*"]
+# USM and UPM are standalone packages (submodules) installed separately:
+#   pip install -e ./src/usm
+#   pip install -e ./src/upm
 
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
 
 [tool.ruff]
-line-length = 100
+line-length = 120
+
+[tool.ruff.lint]
+select = ["F"]

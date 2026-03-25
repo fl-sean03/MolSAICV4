@@ -247,3 +247,68 @@ Atoms # full
                 assert "48.000000" in line
             if "ylo yhi" in line:
                 assert "47.000000" in line
+
+    def test_existing_tilt_line_is_updated(self, tmp_path):
+        """If data file already has a tilt line, it should be updated, not duplicated."""
+        data_with_tilt = self.MOCK_DATA.replace(
+            "-5.000000 25.000000 zlo zhi\n",
+            "-5.000000 25.000000 zlo zhi\n0.000000 0.000000 0.000000 xy xz yz\n"
+        )
+        data_path = tmp_path / "test.data"
+        data_path.write_text(data_with_tilt)
+
+        normalize_data_file(
+            data_path,
+            a_dim=6.101,
+            b_dim=6.101,
+            do_xy=True,
+            z_target=19.86,
+            do_z_shift=False,
+            do_z_center=False,
+            cell_angles=(90.0, 90.0, 120.0),
+        )
+
+        text = data_path.read_text()
+        # Should have exactly ONE tilt line, not two
+        tilt_count = sum(1 for line in text.splitlines() if "xy xz yz" in line)
+        assert tilt_count == 1, f"Expected 1 tilt line, found {tilt_count}"
+        # And it should have the correct values
+        for line in text.splitlines():
+            if "xy xz yz" in line:
+                xy_val = float(line.split()[0])
+                assert math.isclose(xy_val, -6.101 / 2, rel_tol=1e-3)
+
+    def test_z_shift_works_with_triclinic(self, tmp_path):
+        """Z-shifting atoms should work correctly when tilt line is also inserted."""
+        data_path = tmp_path / "test.data"
+        data_path.write_text(self.MOCK_DATA)
+
+        normalize_data_file(
+            data_path,
+            a_dim=6.101,
+            b_dim=6.101,
+            do_xy=True,
+            z_target=19.86,
+            do_z_shift=True,
+            do_z_center=False,
+            cell_angles=(90.0, 90.0, 120.0),
+        )
+
+        text = data_path.read_text()
+        assert "xy xz yz" in text
+        # Atoms should still be present
+        assert "Atoms" in text
+
+    def test_degenerate_gamma_raises(self):
+        """compute_lammps_tilt should raise for degenerate gamma (sin~0)."""
+        with pytest.raises(ValueError, match="Degenerate"):
+            compute_lammps_tilt(10.0, 10.0, 15.0, 90.0, 90.0, 0.0)
+
+    def test_parse_car_3_number_pbc(self, tmp_path):
+        """CAR with only 3 PBC numbers should default angles to 90."""
+        car = tmp_path / "test.car"
+        car.write_text("!BIOSYM archive 3\nPBC=ON\n!DATE test\nPBC  10.0  10.0  15.0 (P1)\nend\nend\n")
+        a, b, c, alpha, beta, gamma = parse_cell_from_car(car)
+        assert math.isclose(a, 10.0)
+        assert math.isclose(alpha, 90.0)
+        assert math.isclose(gamma, 90.0)

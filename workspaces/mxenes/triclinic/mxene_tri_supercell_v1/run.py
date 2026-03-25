@@ -156,6 +156,9 @@ def _build_supercell(cfg: dict, workspace_dir: Path) -> dict:
     n_top = top_mask.sum()
     n_bot = (~top_mask).sum()
     print(f"  Bottom slab: {n_bot} atoms, Top slab: {n_top} atoms")
+    imbalance_pct = abs(n_top - n_bot) / n_total * 100
+    if imbalance_pct > 5.0:
+        print(f"  WARNING: Bilayer split is {imbalance_pct:.1f}% imbalanced — check structure", file=sys.stderr)
 
     shift_amount = z_gap - natural_gap
     if shift_amount > 0:
@@ -188,11 +191,18 @@ def _build_supercell(cfg: dict, workspace_dir: Path) -> dict:
     save_mdf(sup, str(mdf_out), preserve_headers=False, write_normalized_connections=True)
     timings["save_s"] = time.perf_counter() - t0
 
-    # Validation
+    # Validation: full bond set comparison (not just count)
     reloaded_mdf = load_mdf(str(mdf_out))
-    assert len(reloaded_mdf.bonds) == len(sup.bonds), \
-        f"Bond roundtrip failed: {len(sup.bonds)} -> {len(reloaded_mdf.bonds)}"
-    print(f"  Saved and verified: {car_out.name}, {mdf_out.name}")
+    def _bond_set(bonds_df):
+        return set(
+            (int(r["a1"]), int(r["a2"]), int(r["ix"]), int(r["iy"]), int(r["iz"]))
+            for _, r in bonds_df.iterrows()
+        )
+    orig_set = _bond_set(sup.bonds)
+    reload_set = _bond_set(reloaded_mdf.bonds)
+    assert orig_set == reload_set, \
+        f"Bond roundtrip corruption: {len(orig_set)} orig, {len(reload_set)} reloaded, {len(orig_set ^ reload_set)} differ"
+    print(f"  Saved and verified: {car_out.name}, {mdf_out.name} ({len(orig_set)} bonds match)")
 
     return {
         "supercell_car": str(car_out),
@@ -240,7 +250,17 @@ def _run_msi2lmp(cfg: dict, workspace_dir: Path, supercell_info: dict) -> dict:
     if status == "ok":
         data_file = result["outputs"]["lmp_data_file"]
         print(f"  Output: {data_file}")
-        return {"lmp_data_file": data_file, "msi2lmp_s": dt, "status": "ok"}
+        # Surface any warnings from msi2lmp stderr
+        stderr = result.get("stderr", "")
+        if stderr and stderr.strip():
+            warn_lines = [l for l in stderr.strip().splitlines() if l.strip()]
+            if warn_lines:
+                print(f"  msi2lmp produced {len(warn_lines)} warning lines:")
+                for wl in warn_lines[:3]:
+                    print(f"    {wl.strip()}")
+                if len(warn_lines) > 3:
+                    print(f"    ... ({len(warn_lines) - 3} more)")
+        return {"lmp_data_file": data_file, "msi2lmp_s": dt, "status": "ok", "warnings": len(stderr.splitlines()) if stderr else 0}
     else:
         stderr = result.get("stderr", "")
         print(f"  msi2lmp FAILED: {stderr[:500]}", file=sys.stderr)

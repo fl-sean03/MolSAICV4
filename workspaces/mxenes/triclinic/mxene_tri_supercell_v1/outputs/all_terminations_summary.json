@@ -18,15 +18,16 @@
       "z_split": 4.965,
       "z_gap_actual": 8.0,
       "timings": {
-        "load_compose_s": 0.03353987600712571,
-        "replicate_s": 0.19817402800254058,
-        "save_s": 1.1662242509919452
+        "load_compose_s": 0.040596122009446844,
+        "replicate_s": 0.1780569089751225,
+        "save_s": 0.7669510490086395
       }
     },
     "msi2lmp": {
       "lmp_data_file": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/mxenes/triclinic/mxene_tri_supercell_v1/outputs/100OH/simulation/mxene_bilayer_dry.data",
-      "msi2lmp_s": 0.25998513400554657,
-      "status": "ok"
+      "msi2lmp_s": 0.22578074497869238,
+      "status": "ok",
+      "warnings": 0
     },
     "status": "ok"
   },
@@ -49,15 +50,16 @@
       "z_split": 4.965,
       "z_gap_actual": 8.0,
       "timings": {
-        "load_compose_s": 0.025482169003225863,
-        "replicate_s": 0.19994350399065297,
-        "save_s": 0.7788995930022793
+        "load_compose_s": 0.028180861001601443,
+        "replicate_s": 0.13179872298496775,
+        "save_s": 0.6795780690154061
       }
     },
     "msi2lmp": {
       "lmp_data_file": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/mxenes/triclinic/mxene_tri_supercell_v1/outputs/50F50OH/simulation/mxene_bilayer_dry.data",
-      "msi2lmp_s": 0.19118200699449517,
-      "status": "ok"
+      "msi2lmp_s": 0.20737029699375853,
+      "status": "ok",
+      "warnings": 180
     },
     "status": "ok"
   },
@@ -80,15 +82,16 @@
       "z_split": 4.965,
       "z_gap_actual": 8.0,
       "timings": {
-        "load_compose_s": 0.03041505800501909,
-        "replicate_s": 0.20024258000194095,
-        "save_s": 1.0275757259951206
+        "load_compose_s": 0.0382702490023803,
+        "replicate_s": 0.14755183301167563,
+        "save_s": 0.6031173249939457
       }
     },
     "msi2lmp": {
       "lmp_data_file": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/mxenes/triclinic/mxene_tri_supercell_v1/outputs/100F/simulation/mxene_bilayer_dry.data",
-      "msi2lmp_s": 0.20277072399039753,
-      "status": "ok"
+      "msi2lmp_s": 0.2050525859813206,
+      "status": "ok",
+      "warnings": 0
     },
     "status": "ok"
   }

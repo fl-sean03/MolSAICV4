@@ -84,6 +84,19 @@ class TestEncodePeriodicShift:
     def test_all_positive(self):
         assert _encode_periodic_shift(1, 1, 1) == "%111#1"
 
+    def test_multi_digit_raises(self):
+        """Shifts outside [-9, 9] should raise ValueError."""
+        with pytest.raises(ValueError, match="single-digit"):
+            _encode_periodic_shift(10, 0, 0)
+        with pytest.raises(ValueError, match="single-digit"):
+            _encode_periodic_shift(0, -10, 0)
+        with pytest.raises(ValueError, match="single-digit"):
+            _encode_periodic_shift(0, 0, 12)
+
+    def test_max_single_digit(self):
+        """Boundary: ±9 should work."""
+        assert _encode_periodic_shift(9, -9, 9) == "%9-99#1"
+
 
 # ---------------------------------------------------------------------------
 # Round-trip: parse(encode(x)) == x

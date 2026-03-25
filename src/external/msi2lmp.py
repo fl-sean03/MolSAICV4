@@ -354,9 +354,8 @@ def run(
             bool(do_z_shift),
             bool(do_z_center),
         )
-    except Exception as _:
-        # Do not fail the overall run on normalization issues in this subtask
-        pass
+    except Exception as norm_err:
+        logger.warning("Post-msi2lmp normalization failed: %s", norm_err)
 
     # Adapter-conformant result envelope with back-compat alias + deterministic artifacts
     tool_version = get_tool_version(str(exe))

@@ -1,0 +1,92 @@
+!BIOSYM molecular_data 4
+ 
+!Date: Mon Jun 10 09:39:11 2024   Materials Studio Generated MDF file
+ 
+#topology
+
+@column 1 element
+@column 2 atom_type
+@column 3 charge_group
+@column 4 isotope
+@column 5 formal_charge
+@column 6 charge
+@column 7 switching_atom
+@column 8 oop_flag
+@column 9 chirality_flag
+@column 10 occupancy
+@column 11 xray_temp_factor
+@column 12 connections
+ 
+@molecule T3C2_OH_unit_cell_v
+ 
+XXXX_1:Ti           Ti ti2     ?     0  4+    0.6750 0 0 8 1.0000  0.0000 XXXX_17:C XXXX_18:C XXXX_19:C%0-10#1 
+XXXX_2:Ti           Ti ti2     ?     0  4+    0.6750 0 0 8 1.0000  0.0000 XXXX_18:C XXXX_17:C%100#1 XXXX_20:C%0-10#1 
+XXXX_3:Ti           Ti ti2     ?     0  4+    0.6750 0 0 8 1.0000  0.0000 XXXX_19:C XXXX_20:C XXXX_17:C 
+XXXX_4:Ti           Ti ti2     ?     0  4+    0.6750 0 0 8 1.0000  0.0000 XXXX_20:C XXXX_18:C XXXX_19:C%100#1 
+XXXX_5:Ti           Ti ti2     ?     0  4+    0.6750 0 0 8 1.0000  0.0000 XXXX_21:C XXXX_23:C XXXX_22:C%-100#1 
+XXXX_6:Ti           Ti ti2     ?     0  4+    0.6750 0 0 8 1.0000  0.0000 XXXX_22:C XXXX_21:C XXXX_24:C 
+XXXX_7:Ti           Ti ti2     ?     0  4+    0.6750 0 0 8 1.0000  0.0000 XXXX_23:C XXXX_24:C%-100#1 XXXX_21:C%010#1 
+XXXX_8:Ti           Ti ti2     ?     0  4+    0.6750 0 0 8 1.0000  0.0000 XXXX_24:C XXXX_23:C 
+XXXX_9:Ti           Ti ti2     ?     0  4+    0.6750 0 0 8 1.0000  0.0000 XXXX_25:C XXXX_27:C XXXX_26:C%-100#1 
+XXXX_10:Ti          Ti ti2     ?     0  4+    0.6750 0 0 8 1.0000  0.0000 XXXX_26:C XXXX_25:C XXXX_28:C 
+XXXX_11:Ti          Ti ti2     ?     0  4+    0.6750 0 0 8 1.0000  0.0000 XXXX_27:C XXXX_28:C%-100#1 XXXX_25:C%010#1 
+XXXX_12:Ti          Ti ti2     ?     0  4+    0.6750 0 0 8 1.0000  0.0000 XXXX_28:C XXXX_27:C XXXX_26:C%010#1 
+XXXX_13:Ti          Ti ti2     ?     0  4+    0.6750 0 0 8 1.0000  0.0000 XXXX_29:C XXXX_30:C XXXX_31:C%0-10#1 
+XXXX_14:Ti          Ti ti2     ?     0  4+    0.6750 0 0 8 1.0000  0.0000 XXXX_30:C XXXX_32:C%0-10#1 XXXX_29:C%100#1 
+XXXX_15:Ti          Ti ti2     ?     0  4+    0.6750 0 0 8 1.0000  0.0000 XXXX_31:C XXXX_29:C XXXX_32:C 
+XXXX_16:Ti          Ti ti2     ?     0  4+    0.6750 0 0 8 1.0000  0.0000 XXXX_32:C XXXX_30:C XXXX_31:C%100#1 
+XXXX_17:C           C  cx3     ?     0  0    -0.3500 0 0 8 1.0000  0.0000 XXXX_1:Ti XXXX_3:Ti XXXX_33:Ti XXXX_35:Ti XXXX_36:Ti XXXX_2:Ti%-100#1 
+XXXX_18:C           C  cx1     ?     0  0    -0.3500 0 0 8 1.0000  0.0000 XXXX_1:Ti XXXX_2:Ti XXXX_4:Ti XXXX_34:Ti XXXX_36:Ti XXXX_35:Ti%100#1 
+XXXX_19:C           C  cx4     ?     0  0    -0.3500 0 0 8 1.0000  0.0000 XXXX_3:Ti XXXX_35:Ti XXXX_1:Ti%010#1 XXXX_4:Ti%-100#1 XXXX_33:Ti%010#1 XXXX_34:Ti%010#1 
+XXXX_20:C           C  cx2     ?     0  0    -0.3500 0 0 8 1.0000  0.0000 XXXX_3:Ti XXXX_4:Ti XXXX_36:Ti XXXX_2:Ti%010#1 XXXX_34:Ti%010#1 XXXX_33:Ti%110#1 
+XXXX_21:C           C  cx2     ?     0  0    -0.3500 0 0 8 1.0000  0.0000 XXXX_5:Ti XXXX_6:Ti XXXX_37:Ti XXXX_40:Ti XXXX_38:Ti XXXX_7:Ti%0-10#1 
+XXXX_22:C           C  cx4     ?     0  0    -0.3500 0 0 8 1.0000  0.0000 XXXX_6:Ti XXXX_38:Ti XXXX_5:Ti%100#1 XXXX_39:Ti%100#1 XXXX_37:Ti%100#1 
+XXXX_23:C           C  cx1     ?     0  0    -0.3500 0 0 8 1.0000  0.0000 XXXX_5:Ti XXXX_7:Ti XXXX_8:Ti XXXX_39:Ti XXXX_40:Ti XXXX_38:Ti%010#1 
+XXXX_24:C           C  cx3     ?     0  0    -0.3500 0 0 8 1.0000  0.0000 XXXX_6:Ti XXXX_8:Ti XXXX_40:Ti XXXX_7:Ti%100#1 XXXX_37:Ti%110#1 XXXX_39:Ti%100#1 
+XXXX_25:C           C  cx2     ?     0  0    -0.3500 0 0 8 1.0000  0.0000 XXXX_9:Ti XXXX_10:Ti XXXX_33:Ti XXXX_34:Ti XXXX_36:Ti XXXX_11:Ti%0-10#1 
+XXXX_26:C           C  cx4     ?     0  0    -0.3500 0 0 8 1.0000  0.0000 XXXX_10:Ti XXXX_34:Ti XXXX_9:Ti%100#1 XXXX_12:Ti%0-10#1 XXXX_33:Ti%100#1 XXXX_35:Ti%100#1 
+XXXX_27:C           C  cx1     ?     0  0    -0.3500 0 0 8 1.0000  0.0000 XXXX_9:Ti XXXX_11:Ti XXXX_12:Ti XXXX_35:Ti XXXX_36:Ti XXXX_34:Ti%010#1 
+XXXX_28:C           C  cx3     ?     0  0    -0.3500 0 0 8 1.0000  0.0000 XXXX_10:Ti XXXX_12:Ti XXXX_36:Ti XXXX_11:Ti%100#1 XXXX_35:Ti%100#1 XXXX_33:Ti%110#1 
+XXXX_29:C           C  cx3     ?     0  0    -0.3500 0 0 8 1.0000  0.0000 XXXX_13:Ti XXXX_15:Ti XXXX_37:Ti XXXX_40:Ti XXXX_39:Ti XXXX_14:Ti%-100#1 
+XXXX_30:C           C  cx1     ?     0  0    -0.3500 0 0 8 1.0000  0.0000 XXXX_13:Ti XXXX_14:Ti XXXX_16:Ti XXXX_38:Ti XXXX_40:Ti XXXX_39:Ti%100#1 
+XXXX_31:C           C  cx4     ?     0  0    -0.3500 0 0 8 1.0000  0.0000 XXXX_15:Ti XXXX_39:Ti XXXX_13:Ti%010#1 XXXX_16:Ti%-100#1 XXXX_38:Ti%010#1 XXXX_37:Ti%010#1 
+XXXX_32:C           C  cx2     ?     0  0    -0.3500 0 0 8 1.0000  0.0000 XXXX_15:Ti XXXX_16:Ti XXXX_40:Ti XXXX_14:Ti%010#1 XXXX_37:Ti%110#1 XXXX_38:Ti%010#1 
+XXXX_33:Ti          Ti ti1     ?     0  4+    0.3500 0 0 8 1.0000  0.0000 XXXX_17:C XXXX_25:C XXXX_19:C%0-10#1 XXXX_20:C%-1-10#1 XXXX_26:C%-100#1 XXXX_28:C%-1-10#1 
+XXXX_34:Ti          Ti ti1     ?     0  4+    0.3500 0 0 8 1.0000  0.0000 XXXX_18:C XXXX_25:C XXXX_26:C XXXX_19:C%0-10#1 XXXX_20:C%0-10#1 XXXX_27:C%0-10#1 
+XXXX_35:Ti          Ti ti1     ?     0  4+    0.3500 0 0 8 1.0000  0.0000 XXXX_17:C XXXX_19:C XXXX_27:C XXXX_18:C%-100#1 XXXX_26:C%-100#1 XXXX_28:C%-100#1 
+XXXX_36:Ti          Ti ti1     ?     0  4+    0.3500 0 0 8 1.0000  0.0000 XXXX_17:C XXXX_18:C XXXX_20:C XXXX_25:C XXXX_27:C XXXX_28:C 
+XXXX_37:Ti          Ti ti1     ?     0  4+    0.3500 0 0 8 1.0000  0.0000 XXXX_21:C XXXX_29:C XXXX_22:C%-100#1 XXXX_24:C%-1-10#1 XXXX_31:C%0-10#1 XXXX_32:C%-1-10#1 
+XXXX_38:Ti          Ti ti1     ?     0  4+    0.3500 0 0 8 1.0000  0.0000 XXXX_21:C XXXX_22:C XXXX_30:C XXXX_23:C%0-10#1 XXXX_31:C%0-10#1 XXXX_32:C%0-10#1 
+XXXX_39:Ti          Ti ti1     ?     0  4+    0.3500 0 0 8 1.0000  0.0000 XXXX_23:C XXXX_29:C XXXX_31:C XXXX_22:C%-100#1 XXXX_24:C%-100#1 XXXX_30:C%-100#1 
+XXXX_40:Ti          Ti ti1     ?     0  4+    0.3500 0 0 8 1.0000  0.0000 XXXX_21:C XXXX_23:C XXXX_24:C XXXX_29:C XXXX_30:C XXXX_32:C 
+XXXX_41:O           F  fx      ?     0  2-   -0.5000 0 0 8 1.0000  0.0000 
+XXXX_42:O           O  omx     ?     0  2-   -0.7875 0 0 8 1.0000  0.0000 XXXX_46:H 
+XXXX_43:O           O  omx     ?     0  2-   -0.7875 0 0 8 1.0000  0.0000 XXXX_47:H 
+XXXX_44:O           F  fx      ?     0  2-   -0.5000 0 0 8 1.0000  0.0000 
+XXXX_46:H           H  hoy     ?     0  1-    0.2875 0 0 8 1.0000  0.0000 XXXX_42:O 
+XXXX_47:H           H  hoy     ?     0  1-    0.2875 0 0 8 1.0000  0.0000 XXXX_43:O 
+XXXX_49:O           O  omx     ?     0  2-   -0.7875 0 0 8 1.0000  0.0000 XXXX_53:H 
+XXXX_50:O           F  fx      ?     0  2-   -0.5000 0 0 8 1.0000  0.0000 
+XXXX_51:O           F  fx      ?     0  2-   -0.5000 0 0 8 1.0000  0.0000 
+XXXX_52:O           O  omx     ?     0  2-   -0.7875 0 0 8 1.0000  0.0000 XXXX_56:H 
+XXXX_53:H           H  hoy     ?     0  1-    0.2875 0 0 8 1.0000  0.0000 XXXX_49:O 
+XXXX_56:H           H  hoy     ?     0  1-    0.2875 0 0 8 1.0000  0.0000 XXXX_52:O 
+XXXX_57:O           F  fx      ?     0  2-   -0.5000 0 0 8 1.0000  0.0000 
+XXXX_58:O           O  omx     ?     0  2-   -0.7875 0 0 8 1.0000  0.0000 XXXX_62:H 
+XXXX_59:O           O  omx     ?     0  2-   -0.7875 0 0 8 1.0000  0.0000 XXXX_63:H 
+XXXX_60:O           F  fx      ?     0  2-   -0.5000 0 0 8 1.0000  0.0000 
+XXXX_62:H           H  hoy     ?     0  1-    0.2875 0 0 8 1.0000  0.0000 XXXX_58:O 
+XXXX_63:H           H  hoy     ?     0  1-    0.2875 0 0 8 1.0000  0.0000 XXXX_59:O 
+XXXX_65:O           O  omx     ?     0  2-   -0.7875 0 0 8 1.0000  0.0000 XXXX_69:H 
+XXXX_66:O           F  fx      ?     0  2-   -0.5000 0 0 8 1.0000  0.0000 
+XXXX_67:O           F  fx      ?     0  2-   -0.5000 0 0 8 1.0000  0.0000 
+XXXX_68:O           O  omx     ?     0  2-   -0.7875 0 0 8 1.0000  0.0000 XXXX_72:H 
+XXXX_69:H           H  hoy     ?     0  1-    0.2875 0 0 8 1.0000  0.0000 XXXX_65:O 
+XXXX_72:H           H  hoy     ?     0  1-    0.2875 0 0 8 1.0000  0.0000 XXXX_68:O 
+ 
+!
+#symmetry
+@periodicity 3 xyz
+@group (P1)
+
+#end

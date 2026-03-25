@@ -1,0 +1,21 @@
+
+Running msi2lmp v3.9.6 / 11 Sep 2014
+
+ Forcefield: Class I
+ Forcefield file name: ../frc_files/cvff_iff_MXENE_REV_v3_DIMFIX.frc
+ Output is recentered around geometrical center
+ Output contains style flag hints
+ System translated by: 0 0 0
+ Reading car file: mxene_bilayer_dry.car
+ Reading mdf file: mxene_bilayer_dry.mdf
+
+ Building internal coordinate lists 
+
+ Reading forcefield file 
+
+ Get force field parameters for this system
+
+ Check parameters for internal consistency
+ Writing LAMMPS data file mxene_bilayer_dry.data for Class I force field
+
+Normal program termination

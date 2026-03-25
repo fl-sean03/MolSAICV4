@@ -53,6 +53,7 @@ from ._msi2lmp_argv import (
 )
 from ._lmp_normalize import (
     parse_abc_from_car as _parse_abc_from_car,
+    parse_cell_from_car as _parse_cell_from_car,
     normalize_data_file as _normalize_data_file,
 )
 
@@ -320,7 +321,7 @@ def run(
     # - Normalize Z header to [0,z_target] (use provided normalize_z_to or CAR PBC c if available).
     # - Uniformly shift atom Z so min(z)=0 (parity with legacy).
     try:
-        a_dim, b_dim, c_dim = _parse_abc_from_car(staged_car)
+        a_dim, b_dim, c_dim, alpha, beta, gamma = _parse_cell_from_car(staged_car)
         z_target = normalize_z_to if normalize_z_to is not None else c_dim
 
         do_z_center = bool(normalize_z_center)
@@ -333,6 +334,11 @@ def run(
         # Precedence: centering wins over legacy shifting
         do_z_shift = bool(normalize_z_shift) and (not do_z_center)
 
+        # Pass cell angles for triclinic tilt factor support
+        cell_angles = None
+        if alpha is not None and beta is not None and gamma is not None:
+            cell_angles = (alpha, beta, gamma)
+
         _normalize_data_file(
             data_out,
             a_dim,
@@ -341,6 +347,7 @@ def run(
             z_target,
             do_z_shift,
             do_z_center,
+            cell_angles=cell_angles,
         )
         logger.info(
             "Applied post-msi2lmp normalization to LAMMPS .data (header; Z shift=%s; Z center=%s).",

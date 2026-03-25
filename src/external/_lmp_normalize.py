@@ -1,32 +1,72 @@
 """LAMMPS data file normalization logic for msi2lmp wrapper.
 
 Private module containing post-processing normalization for LAMMPS .data files,
-including header normalization and coordinate shifting.
+including header normalization, coordinate shifting, and triclinic box support.
 """
 
 from __future__ import annotations
 
+import math
 import re
 from pathlib import Path
+from typing import Tuple
 
 
 def parse_abc_from_car(p: Path) -> tuple[float | None, float | None, float | None]:
-    """Parse a/b/c lattice parameters from a CAR file PBC line."""
-    a = b = c = None
+    """Parse a/b/c lattice parameters from a CAR file PBC line (legacy)."""
+    cell = parse_cell_from_car(p)
+    return cell[0], cell[1], cell[2]
+
+
+def parse_cell_from_car(
+    p: Path,
+) -> Tuple[float | None, float | None, float | None, float | None, float | None, float | None]:
+    """Parse full cell parameters (a, b, c, alpha, beta, gamma) from a CAR PBC line."""
+    a = b = c = alpha = beta = gamma = None
     try:
         with open(p, "r", encoding="utf-8", errors="ignore") as fh:
             for line in fh:
                 s = line.strip()
                 if s.upper().startswith("PBC") and "=" not in s.upper():
                     nums = re.findall(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?", s)
-                    if len(nums) >= 3:
-                        a = float(nums[0])
-                        b = float(nums[1])
-                        c = float(nums[2])
-                        break
+                    if len(nums) >= 6:
+                        a, b, c = float(nums[0]), float(nums[1]), float(nums[2])
+                        alpha, beta, gamma = float(nums[3]), float(nums[4]), float(nums[5])
+                    elif len(nums) >= 3:
+                        a, b, c = float(nums[0]), float(nums[1]), float(nums[2])
+                        alpha, beta, gamma = 90.0, 90.0, 90.0
+                    break
     except Exception:
         pass
-    return a, b, c
+    return a, b, c, alpha, beta, gamma
+
+
+def is_triclinic(alpha: float, beta: float, gamma: float, tol: float = 0.01) -> bool:
+    """Return True if any cell angle differs from 90 degrees."""
+    return (abs(alpha - 90.0) > tol or abs(beta - 90.0) > tol or abs(gamma - 90.0) > tol)
+
+
+def compute_lammps_tilt(
+    a: float, b: float, c: float, alpha: float, beta: float, gamma: float
+) -> dict[str, float]:
+    """Convert crystallographic cell to LAMMPS box parameters.
+
+    Returns dict with keys: lx, ly, lz, xy, xz, yz.
+    For orthogonal cells, xy=xz=yz=0.
+    """
+    alpha_r = math.radians(alpha)
+    beta_r = math.radians(beta)
+    gamma_r = math.radians(gamma)
+
+    lx = a
+    xy = b * math.cos(gamma_r)
+    xz = c * math.cos(beta_r)
+    ly = math.sqrt(max(0.0, b * b - xy * xy))
+    if ly < 1e-12:
+        raise ValueError(f"Degenerate cell: sin(gamma) ~ 0 for gamma={gamma}")
+    yz = (b * c * math.cos(alpha_r) - xy * xz) / ly
+    lz = math.sqrt(max(0.0, c * c - xz * xz - yz * yz))
+    return {"lx": lx, "ly": ly, "lz": lz, "xy": xy, "xz": xz, "yz": yz}
 
 
 def normalize_data_file(
@@ -37,6 +77,7 @@ def normalize_data_file(
     z_target: float | None,
     do_z_shift: bool,
     do_z_center: bool,
+    cell_angles: tuple[float, float, float] | None = None,
 ) -> None:
     """Normalize LAMMPS .data file header and optionally shift Z coordinates.
 
@@ -49,10 +90,21 @@ def normalize_data_file(
     - do_z_shift: if True, shift atom Z so min(z)=0 (legacy behavior)
     - do_z_center: if True, shift atom Z so structure midpoint maps to z_target/2
       (takes precedence over do_z_shift)
+    - cell_angles: (alpha, beta, gamma) in degrees; if triclinic, writes tilt factors
     """
 
     def _fmt(x: float) -> str:
         return f"{x:.6f}"
+
+    # Determine if triclinic
+    triclinic = False
+    tilt = None
+    if cell_angles is not None and a_dim is not None and b_dim is not None:
+        alpha, beta, gamma = cell_angles
+        if is_triclinic(alpha, beta, gamma):
+            triclinic = True
+            c_val = z_target if z_target is not None else 100.0  # fallback
+            tilt = compute_lammps_tilt(a_dim, b_dim, c_val, alpha, beta, gamma)
 
     # Read file
     with open(data_path, "r", encoding="utf-8", errors="ignore") as fh:
@@ -60,6 +112,7 @@ def normalize_data_file(
 
     # Find header bounds and indices
     x_idx = y_idx = z_idx = None
+    tilt_idx = None  # existing "xy xz yz" line if present
     atoms_header_idx = None
     for i, line in enumerate(lines[:300]):
         if re.search(r"\bxlo\s+xhi\b", line):
@@ -68,15 +121,36 @@ def normalize_data_file(
             y_idx = i
         elif re.search(r"\bzlo\s+zhi\b", line):
             z_idx = i
+        elif re.search(r"\bxy\s+xz\s+yz\b", line):
+            tilt_idx = i
         if atoms_header_idx is None and re.match(r"^\s*Atoms\b", line):
             atoms_header_idx = i
 
     # Update XY header extents
     if do_xy:
-        if a_dim is not None and x_idx is not None:
-            lines[x_idx] = f"0.000000 {_fmt(a_dim)} xlo xhi"
-        if b_dim is not None and y_idx is not None:
-            lines[y_idx] = f"0.000000 {_fmt(b_dim)} ylo yhi"
+        if triclinic and tilt is not None:
+            # For triclinic: use lx, ly (not a, b)
+            if x_idx is not None:
+                lines[x_idx] = f"0.000000 {_fmt(tilt['lx'])} xlo xhi"
+            if y_idx is not None:
+                lines[y_idx] = f"0.000000 {_fmt(tilt['ly'])} ylo yhi"
+        else:
+            if a_dim is not None and x_idx is not None:
+                lines[x_idx] = f"0.000000 {_fmt(a_dim)} xlo xhi"
+            if b_dim is not None and y_idx is not None:
+                lines[y_idx] = f"0.000000 {_fmt(b_dim)} ylo yhi"
+
+    # Write or update tilt factors for triclinic cells
+    if triclinic and tilt is not None:
+        tilt_line = f"{_fmt(tilt['xy'])} {_fmt(tilt['xz'])} {_fmt(tilt['yz'])} xy xz yz"
+        if tilt_idx is not None:
+            lines[tilt_idx] = tilt_line
+        elif z_idx is not None:
+            # Insert tilt line right after zlo/zhi
+            lines.insert(z_idx + 1, tilt_line)
+            # Adjust indices that follow
+            if atoms_header_idx is not None and atoms_header_idx > z_idx:
+                atoms_header_idx += 1
 
     # Identify Atoms section range
     if atoms_header_idx is not None:

@@ -42,6 +42,7 @@ from usm.io.car import load_car, save_car
 from usm.io.mdf import load_mdf, save_mdf
 from usm.ops.compose import compose_on_keys
 from usm.ops.replicate import replicate_supercell
+from usm.ops.transform import wrap_to_cell
 from external import msi2lmp
 from external.adapter import resolve_executable
 
@@ -116,11 +117,15 @@ def _build_supercell(cfg: dict, workspace_dir: Path) -> dict:
     periodic = (usm.bonds["ix"] != 0) | (usm.bonds["iy"] != 0) | (usm.bonds["iz"] != 0)
     print(f"  Unit cell: {n_unit_atoms} atoms, {n_unit_bonds} bonds ({periodic.sum()} periodic)")
 
-    # Step 2: Replicate
+    # Step 2: Replicate and wrap
     print(f"Step 2: Replicating {na}x{nb}x{nc} supercell...")
     t0 = time.perf_counter()
     sup = replicate_supercell(usm, na, nb, nc)
     _strip_tile_suffixes(sup)  # Remove _T_i_j_k suffixes for msi2lmp compatibility
+    # Wrap atoms into the periodic cell (critical for triclinic — hexagonal
+    # b-vector has negative x-component, so replication pushes atoms outside box)
+    sup.cell["pbc"] = True
+    sup = wrap_to_cell(sup)
     timings["replicate_s"] = time.perf_counter() - t0
     print(f"  Supercell: {len(sup.atoms)} atoms, {len(sup.bonds)} bonds")
     print(f"  Cell: a={sup.cell['a']:.2f} b={sup.cell['b']:.2f} c={sup.cell['c']:.2f} gamma={sup.cell['gamma']:.1f}")

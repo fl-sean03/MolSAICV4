@@ -129,11 +129,19 @@ def normalize_data_file(
     # Update XY header extents
     if do_xy:
         if triclinic and tilt is not None:
-            # For triclinic: use lx, ly (not a, b)
+            # For triclinic: LAMMPS data file uses bounding-box coordinates.
+            # xlo_bound = xlo + min(0, xy, xz, xy+xz)
+            # xhi_bound = xhi + max(0, xy, xz, xy+xz)
+            # With xlo=0, xhi=lx:
+            xy_v, xz_v, yz_v = tilt["xy"], tilt["xz"], tilt["yz"]
+            xlo_bound = 0.0 + min(0.0, xy_v, xz_v, xy_v + xz_v)
+            xhi_bound = tilt["lx"] + max(0.0, xy_v, xz_v, xy_v + xz_v)
+            ylo_bound = 0.0 + min(0.0, yz_v)
+            yhi_bound = tilt["ly"] + max(0.0, yz_v)
             if x_idx is not None:
-                lines[x_idx] = f"0.000000 {_fmt(tilt['lx'])} xlo xhi"
+                lines[x_idx] = f"{_fmt(xlo_bound)} {_fmt(xhi_bound)} xlo xhi"
             if y_idx is not None:
-                lines[y_idx] = f"0.000000 {_fmt(tilt['ly'])} ylo yhi"
+                lines[y_idx] = f"{_fmt(ylo_bound)} {_fmt(yhi_bound)} ylo yhi"
         else:
             if a_dim is not None and x_idx is not None:
                 lines[x_idx] = f"0.000000 {_fmt(a_dim)} xlo xhi"
@@ -259,6 +267,49 @@ def normalize_data_file(
                 zhi_val = float(z_target)
             if zhi_val is not None:
                 lines[z_idx] = f"0.000000 {_fmt(zhi_val)} zlo zhi"
+
+        # Wrap XY coordinates into the triclinic bounding box.
+        # msi2lmp recenters atoms which can push them outside the periodic cell.
+        # Wrapping in fractional ab-plane only (not z — may have vacuum).
+        if triclinic and tilt is not None:
+            lx_v = tilt["lx"]
+            ly_v = tilt["ly"]
+            xy_v = tilt["xy"]
+            # Determine x,y column indices from style
+            if style == "full":
+                xi, yi = 4, 5
+            elif style == "molecular":
+                xi, yi = 3, 4
+            elif style == "atomic":
+                xi, yi = 2, 3
+            else:
+                xi, yi = None, None  # skip wrapping for unknown style
+            if xi is not None and yi is not None:
+                for j in range(start, end):
+                    original = lines[j]
+                    head, sep, comment = original.partition("#")
+                    left = head.strip()
+                    if not left:
+                        continue
+                    parts = left.split()
+                    if len(parts) <= max(xi, yi):
+                        continue
+                    try:
+                        x_val = float(parts[xi])
+                        y_val = float(parts[yi])
+                    except ValueError:
+                        continue
+                    # Convert to fractional ab-plane: x = s*lx + t*xy, y = t*ly
+                    t_frac = y_val / ly_v
+                    s_frac = (x_val - t_frac * xy_v) / lx_v
+                    # Wrap to [0, 1)
+                    s_frac -= math.floor(s_frac)
+                    t_frac -= math.floor(t_frac)
+                    # Convert back to Cartesian
+                    parts[xi] = _fmt(s_frac * lx_v + t_frac * xy_v)
+                    parts[yi] = _fmt(t_frac * ly_v)
+                    new_left = " ".join(parts)
+                    lines[j] = (new_left + (" " + sep + comment if sep else "")).rstrip()
 
     # Write back
     with open(data_path, "w", encoding="utf-8") as outfh:

@@ -1,0 +1,30 @@
+{
+  "argv": [
+    "/home/sf2/LabWork/software/msi2lmp.exe",
+    "mxene_bilayer_dry",
+    "-class",
+    "I",
+    "-frc",
+    "../frc_files/cvff_iff_MXENE_REV_v3_DIMFIX.frc"
+  ],
+  "cwd": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/mxenes/triclinic/mxene_tri_supercell_v1/outputs/simulation",
+  "duration_s": 0.8516362780937925,
+  "lmp_data_file": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/mxenes/triclinic/mxene_tri_supercell_v1/outputs/simulation/mxene_bilayer_dry.data",
+  "outputs": {
+    "lmp_data_file": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/mxenes/triclinic/mxene_tri_supercell_v1/outputs/simulation/mxene_bilayer_dry.data",
+    "result_json": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/mxenes/triclinic/mxene_tri_supercell_v1/outputs/simulation/result.json",
+    "stderr_file": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/mxenes/triclinic/mxene_tri_supercell_v1/outputs/simulation/stderr.txt",
+    "stdout_file": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/mxenes/triclinic/mxene_tri_supercell_v1/outputs/simulation/stdout.txt"
+  },
+  "outputs_sha256": {
+    "lmp_data_file": "1cf85eb76ab2d5d5d954ebf83d2f9f280ca7595d06f2924bb8a26b54a1a66c86",
+    "stderr_file": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_file": "256212febe5df7c52c7c7126745789dcf4c543c61b99d4cff798a84f27ec8468"
+  },
+  "status": "ok",
+  "stderr": "",
+  "stdout": "\nRunning msi2lmp v3.9.6 / 11 Sep 2014\n\n Forcefield: Class I\n Forcefield file name: ../frc_files/cvff_iff_MXENE_REV_v3_DIMFIX.frc\n Output is recentered around geometrical center\n Output contains style flag hints\n System translated by: 0 0 0\n Reading car file: mxene_bilayer_dry.car\n Reading mdf file: mxene_bilayer_dry.mdf\n\n Building internal coordinate lists \n\n Reading forcefield file \n\n Get force field parameters for this system\n\n Check parameters for internal consistency\n Writing LAMMPS data file mxene_bilayer_dry.data for Class I force field\n\nNormal program termination\n",
+  "tool": "msi2lmp",
+  "tool_version": "9.6",
+  "warnings": []
+}

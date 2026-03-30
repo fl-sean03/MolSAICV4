@@ -129,19 +129,12 @@ def normalize_data_file(
     # Update XY header extents
     if do_xy:
         if triclinic and tilt is not None:
-            # For triclinic: LAMMPS data file uses bounding-box coordinates.
-            # xlo_bound = xlo + min(0, xy, xz, xy+xz)
-            # xhi_bound = xhi + max(0, xy, xz, xy+xz)
-            # With xlo=0, xhi=lx:
-            xy_v, xz_v, yz_v = tilt["xy"], tilt["xz"], tilt["yz"]
-            xlo_bound = 0.0 + min(0.0, xy_v, xz_v, xy_v + xz_v)
-            xhi_bound = tilt["lx"] + max(0.0, xy_v, xz_v, xy_v + xz_v)
-            ylo_bound = 0.0 + min(0.0, yz_v)
-            yhi_bound = tilt["ly"] + max(0.0, yz_v)
+            # For triclinic: LAMMPS data file uses internal box coords (xlo=0, xhi=lx).
+            # The tilt factors on the separate xy/xz/yz line define the skew.
             if x_idx is not None:
-                lines[x_idx] = f"{_fmt(xlo_bound)} {_fmt(xhi_bound)} xlo xhi"
+                lines[x_idx] = f"0.000000 {_fmt(tilt['lx'])} xlo xhi"
             if y_idx is not None:
-                lines[y_idx] = f"{_fmt(ylo_bound)} {_fmt(yhi_bound)} ylo yhi"
+                lines[y_idx] = f"0.000000 {_fmt(tilt['ly'])} ylo yhi"
         else:
             if a_dim is not None and x_idx is not None:
                 lines[x_idx] = f"0.000000 {_fmt(a_dim)} xlo xhi"

@@ -1,0 +1,35 @@
+{
+  "unit_cell": {
+    "car": "inputs/EXPT_TRI_UnitCell_100OH.car",
+    "mdf": "inputs/EXPT_TRI_UnitCell_100OH.mdf"
+  },
+  "supercell": {
+    "supercell_car": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/mxenes/triclinic/mxene_tri_supercell_v1/outputs/supercell/mxene_bilayer_dry.car",
+    "supercell_mdf": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/mxenes/triclinic/mxene_tri_supercell_v1/outputs/supercell/mxene_bilayer_dry.mdf",
+    "n_atoms": 6480,
+    "n_bonds": 10080,
+    "cell": {
+      "pbc": true,
+      "a": 54.909,
+      "b": 61.01,
+      "c": 35.488716000000004,
+      "alpha": 90.0,
+      "beta": 90.0,
+      "gamma": 120.0,
+      "spacegroup": ""
+    },
+    "z_split": 9.337178999999999,
+    "z_gap_actual": 8.0,
+    "timings": {
+      "load_compose_s": 0.14576636208221316,
+      "replicate_s": 0.6451888760784641,
+      "save_s": 2.7019982520723715
+    }
+  },
+  "msi2lmp": {
+    "lmp_data_file": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/mxenes/triclinic/mxene_tri_supercell_v1/outputs/simulation/mxene_bilayer_dry.data",
+    "msi2lmp_s": 1.3539958070032299,
+    "status": "ok",
+    "warnings": 0
+  }
+}

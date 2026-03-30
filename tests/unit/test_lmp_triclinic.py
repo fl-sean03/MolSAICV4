@@ -173,13 +173,12 @@ Atoms # full
                 assert math.isclose(xz_val, 0.0, abs_tol=1e-6)
                 assert math.isclose(yz_val, 0.0, abs_tol=1e-6)
                 break
-        # Verify bounding-box x bounds account for tilt
+        # Internal box: xlo should be 0 (not negative bounding box)
         for line in text.splitlines():
             if "xlo xhi" in line:
                 parts = line.split()
-                xlo_bound = float(parts[0])
-                # xlo_bound should be negative for gamma=120 (xy < 0)
-                assert xlo_bound < 0, f"xlo_bound should be negative for gamma=120, got {xlo_bound}"
+                xlo = float(parts[0])
+                assert math.isclose(xlo, 0.0, abs_tol=1e-6), f"xlo should be 0 for internal box, got {xlo}"
                 break
 
     def test_orthogonal_no_tilt_line(self, tmp_path):
@@ -201,8 +200,8 @@ Atoms # full
         text = data_path.read_text()
         assert "xy xz yz" not in text, "Tilt line should not appear for orthogonal cell"
 
-    def test_triclinic_updates_xy_extents_to_bounding_box(self, tmp_path):
-        """For triclinic, XY extents should use LAMMPS bounding-box coordinates."""
+    def test_triclinic_updates_xy_extents_to_lx_ly(self, tmp_path):
+        """For triclinic, XY extents should use internal box coords (0, lx) / (0, ly)."""
         data_path = tmp_path / "test.data"
         data_path.write_text(self.MOCK_DATA)
 
@@ -220,23 +219,20 @@ Atoms # full
 
         text = data_path.read_text()
         tilt = compute_lammps_tilt(a, b, 19.86, 90.0, 90.0, 120.0)
-        xy = tilt["xy"]  # = -b/2 = -3.0505
         for line in text.splitlines():
             if "xlo xhi" in line:
                 parts = line.split()
-                xlo_bound = float(parts[0])
-                xhi_bound = float(parts[1])
-                # xlo_bound = 0 + min(0, xy) = xy (since xy < 0)
-                assert math.isclose(xlo_bound, xy, rel_tol=1e-3)
-                # xhi_bound = lx + max(0, xy) = lx (since xy < 0)
-                assert math.isclose(xhi_bound, tilt["lx"], rel_tol=1e-3)
+                xlo = float(parts[0])
+                xhi = float(parts[1])
+                # Internal box: xlo=0, xhi=lx
+                assert math.isclose(xlo, 0.0, abs_tol=1e-6)
+                assert math.isclose(xhi, tilt["lx"], rel_tol=1e-3)
             if "ylo yhi" in line:
                 parts = line.split()
-                ylo_bound = float(parts[0])
-                yhi_bound = float(parts[1])
-                # yz=0, so ylo_bound=0, yhi_bound=ly
-                assert math.isclose(ylo_bound, 0.0, abs_tol=1e-6)
-                assert math.isclose(yhi_bound, tilt["ly"], rel_tol=1e-3)
+                ylo = float(parts[0])
+                yhi = float(parts[1])
+                assert math.isclose(ylo, 0.0, abs_tol=1e-6)
+                assert math.isclose(yhi, tilt["ly"], rel_tol=1e-3)
 
     def test_no_cell_angles_backward_compat(self, tmp_path):
         """Without cell_angles, behavior is identical to original."""

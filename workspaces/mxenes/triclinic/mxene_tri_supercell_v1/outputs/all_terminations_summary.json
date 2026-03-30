@@ -18,14 +18,14 @@
       "z_split": 9.337178999999999,
       "z_gap_actual": 8.0,
       "timings": {
-        "load_compose_s": 0.051560310006607324,
-        "replicate_s": 0.20194861700292677,
-        "save_s": 1.0695192060084082
+        "load_compose_s": 0.06179880001582205,
+        "replicate_s": 0.24369534302968532,
+        "save_s": 1.5178041670005769
       }
     },
     "msi2lmp": {
       "lmp_data_file": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/mxenes/triclinic/mxene_tri_supercell_v1/outputs/100OH/simulation/mxene_bilayer_dry.data",
-      "msi2lmp_s": 0.28852410399122164,
+      "msi2lmp_s": 0.3105791099369526,
       "status": "ok",
       "warnings": 0
     },
@@ -50,14 +50,14 @@
       "z_split": 9.337178999999999,
       "z_gap_actual": 8.0,
       "timings": {
-        "load_compose_s": 0.03990183799760416,
-        "replicate_s": 0.1863603800011333,
-        "save_s": 0.9461038459849078
+        "load_compose_s": 0.044723895960487425,
+        "replicate_s": 0.21909599390346557,
+        "save_s": 1.3865851269802079
       }
     },
     "msi2lmp": {
       "lmp_data_file": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/mxenes/triclinic/mxene_tri_supercell_v1/outputs/50F50OH/simulation/mxene_bilayer_dry.data",
-      "msi2lmp_s": 0.22320493299048394,
+      "msi2lmp_s": 0.2884129589656368,
       "status": "ok",
       "warnings": 180
     },
@@ -82,14 +82,14 @@
       "z_split": 9.337178999999999,
       "z_gap_actual": 8.0,
       "timings": {
-        "load_compose_s": 0.04558606698992662,
-        "replicate_s": 0.18244077000417747,
-        "save_s": 0.7764902820053976
+        "load_compose_s": 0.05598866508807987,
+        "replicate_s": 0.21292097098194063,
+        "save_s": 1.1396403909893706
       }
     },
     "msi2lmp": {
       "lmp_data_file": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/mxenes/triclinic/mxene_tri_supercell_v1/outputs/100F/simulation/mxene_bilayer_dry.data",
-      "msi2lmp_s": 0.2470820799935609,
+      "msi2lmp_s": 0.30241748108528554,
       "status": "ok",
       "warnings": 0
     },

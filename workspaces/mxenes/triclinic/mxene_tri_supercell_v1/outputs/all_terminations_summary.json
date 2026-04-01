@@ -9,23 +9,23 @@
         "pbc": true,
         "a": 54.909,
         "b": 61.01,
-        "c": 35.488716000000004,
+        "c": 36.113096,
         "alpha": 90.0,
         "beta": 90.0,
         "gamma": 120.0,
         "spacegroup": ""
       },
-      "z_split": 9.337178999999999,
+      "z_split": 4.965,
       "z_gap_actual": 8.0,
       "timings": {
-        "load_compose_s": 0.06179880001582205,
-        "replicate_s": 0.24369534302968532,
-        "save_s": 1.5178041670005769
+        "load_compose_s": 0.06238803399992321,
+        "replicate_s": 0.22460741000008966,
+        "save_s": 1.6057695140000305
       }
     },
     "msi2lmp": {
       "lmp_data_file": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/mxenes/triclinic/mxene_tri_supercell_v1/outputs/100OH/simulation/mxene_bilayer_dry.data",
-      "msi2lmp_s": 0.3105791099369526,
+      "msi2lmp_s": 0.46252602399999887,
       "status": "ok",
       "warnings": 0
     },
@@ -41,23 +41,23 @@
         "pbc": true,
         "a": 54.909,
         "b": 61.01,
-        "c": 35.488716000000004,
+        "c": 36.113096,
         "alpha": 90.0,
         "beta": 90.0,
         "gamma": 120.0,
         "spacegroup": ""
       },
-      "z_split": 9.337178999999999,
+      "z_split": 4.965,
       "z_gap_actual": 8.0,
       "timings": {
-        "load_compose_s": 0.044723895960487425,
-        "replicate_s": 0.21909599390346557,
-        "save_s": 1.3865851269802079
+        "load_compose_s": 0.08962470799997391,
+        "replicate_s": 0.220756627000128,
+        "save_s": 1.4442543659999956
       }
     },
     "msi2lmp": {
       "lmp_data_file": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/mxenes/triclinic/mxene_tri_supercell_v1/outputs/50F50OH/simulation/mxene_bilayer_dry.data",
-      "msi2lmp_s": 0.2884129589656368,
+      "msi2lmp_s": 0.3260468679998212,
       "status": "ok",
       "warnings": 180
     },
@@ -73,23 +73,23 @@
         "pbc": true,
         "a": 54.909,
         "b": 61.01,
-        "c": 35.488716000000004,
+        "c": 32.252971200000005,
         "alpha": 90.0,
         "beta": 90.0,
         "gamma": 120.0,
         "spacegroup": ""
       },
-      "z_split": 9.337178999999999,
+      "z_split": 4.965,
       "z_gap_actual": 8.0,
       "timings": {
-        "load_compose_s": 0.05598866508807987,
-        "replicate_s": 0.21292097098194063,
-        "save_s": 1.1396403909893706
+        "load_compose_s": 0.08478964400001132,
+        "replicate_s": 0.2520591180000338,
+        "save_s": 1.3846251180000309
       }
     },
     "msi2lmp": {
       "lmp_data_file": "/home/sf2/LabWork/Workspace/25-MOLSAIC/MOLSAICV4/workspaces/mxenes/triclinic/mxene_tri_supercell_v1/outputs/100F/simulation/mxene_bilayer_dry.data",
-      "msi2lmp_s": 0.30241748108528554,
+      "msi2lmp_s": 0.3310449929999777,
       "status": "ok",
       "warnings": 0
     },

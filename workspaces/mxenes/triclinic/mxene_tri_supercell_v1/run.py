@@ -122,10 +122,23 @@ def _build_supercell(cfg: dict, workspace_dir: Path) -> dict:
     t0 = time.perf_counter()
     sup = replicate_supercell(usm, na, nb, nc)
     _strip_tile_suffixes(sup)  # Remove _T_i_j_k suffixes for msi2lmp compatibility
-    # Wrap atoms into the periodic cell (critical for triclinic — hexagonal
-    # b-vector has negative x-component, so replication pushes atoms outside box)
+    # Wrap XY only (not Z!) into the periodic cell. For triclinic cells the
+    # hexagonal b-vector has a negative x-component, so replication pushes
+    # atoms outside the box in x. But wrapping z would split slabs across
+    # the periodic boundary and break bilayer construction.
     sup.cell["pbc"] = True
-    sup = wrap_to_cell(sup)
+    from usm.ops.lattice import lattice_matrix, lattice_inverse, xyz_to_frac, frac_to_xyz
+    import numpy as np
+    _A = lattice_matrix(sup.cell["a"], sup.cell["b"], sup.cell["c"],
+                        sup.cell.get("alpha", 90), sup.cell.get("beta", 90), sup.cell["gamma"])
+    _Ainv = lattice_inverse(_A)
+    _xyz = sup.atoms[["x", "y", "z"]].to_numpy(dtype=np.float64)
+    _frac = xyz_to_frac(_Ainv, _xyz)
+    # Wrap only s (a-direction) and t (b-direction), leave u (c/z) alone
+    _frac[:, 0] -= np.floor(_frac[:, 0])
+    _frac[:, 1] -= np.floor(_frac[:, 1])
+    _xyz_wrapped = frac_to_xyz(_A, _frac)
+    sup.atoms.loc[:, ["x", "y", "z"]] = _xyz_wrapped
     timings["replicate_s"] = time.perf_counter() - t0
     print(f"  Supercell: {len(sup.atoms)} atoms, {len(sup.bonds)} bonds")
     print(f"  Cell: a={sup.cell['a']:.2f} b={sup.cell['b']:.2f} c={sup.cell['c']:.2f} gamma={sup.cell['gamma']:.1f}")

@@ -28,7 +28,7 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["molsaic", "molsaic.*", "external", "external.*", "pm2mdfcar", "pm2mdfcar.*"]
+include = ["molsaic", "molsaic.*", "external", "external.*", "pm2mdfcar", "pm2mdfcar.*", "pm2msi", "pm2msi.*"]
 # USM and UPM are standalone packages (submodules) installed separately:
 #   pip install -e ./src/usm
 #   pip install -e ./src/upm
